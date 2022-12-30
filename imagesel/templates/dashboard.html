@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block header %}
+    <h1>Dashboard</h1>
+{% endblock %}
+
+{% block content%}
+    <h2>Token generation</h2>
+
+    <form method="post">
+        <label for="token">Token</label>
+        <input name="token" id="token" required>
+        <input type="submit" value="Generate">
+    </form>
+
+    <h2>Token overview</h2>
+
+    <table>
+        <tr>
+            <th>Token</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <!-- <th>Used</th> -->
+            <th>Actions</th> 
+        </tr>
+        {% for token in g.tokens %}
+            <tr>
+                <td>{{ token.token }}</td>
+                <td>{{ token.created }}</td>
+                <td>{{ token.used }}</td>
+                <!-- <td>{{ token.expires }}</td> -->
+                <td>
+                    <!-- <form method="post">
+                        <input type="submit" value="Delete">
+                    </form> -->
+                    <form action="{{ url_for('admin.delete', id=token['id']) }}" method="post">
+                        <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+
+{% endblock %}
