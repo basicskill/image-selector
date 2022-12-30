@@ -5,7 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from imagesel.db import get_db
+from imagesel.db import execute_query
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -17,9 +17,12 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        g.user = get_db().execute(
-            'SELECT * FROM tokens WHERE id = ?', (user_id,)
-        ).fetchone()
+        print("#"*20)
+        print(user_id)
+        print("#"*20)
+        g.user = execute_query(
+            "SELECT * FROM tokens WHERE id = %s", (user_id,)
+        )[0]
 
 
 @bp.route('/login', methods=('GET', 'POST'))
@@ -31,11 +34,11 @@ def login():
     if request.method == 'POST':
         token = request.form['token']
         password = request.form['password']
-        db = get_db()
         error = None
-        user = db.execute(
-            'SELECT * FROM tokens WHERE token = ?', (token,)
-        ).fetchone()
+   
+        user = execute_query(
+            'SELECT * FROM tokens WHERE token = %s', (token,)
+        )[0]
 
         if user is None:
             error = 'Incorrect token.'

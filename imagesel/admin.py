@@ -5,7 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from imagesel.db import get_db, add_user
+from imagesel.db import execute_query, add_user
 from imagesel.auth import login_required
 
 # Create admin blueprint
@@ -20,20 +20,18 @@ def dashboard():
         abort(404)
     
     # Get all tokens from tokens table
-    db = get_db()
-    g.tokens = db.execute(
-        'SELECT * FROM tokens WHERE token != "admin"'
-    ).fetchall()
+    g.tokens = execute_query(
+        "SELECT * FROM tokens WHERE token != 'admin'"
+    )
 
     if request.method == 'POST':
         token = request.form['token']
-        db = get_db()
         error = None
-        user = db.execute(
-            'SELECT * FROM tokens WHERE token = ?', (token,)
-        ).fetchone()
+        user = execute_query(
+            "SELECT * FROM tokens WHERE token = %s", (token,)
+        )
 
-        if user is not None:
+        if len(user) > 0:
             error = 'Token already exists.'
 
         if error is None:
@@ -47,10 +45,6 @@ def dashboard():
 @bp.route('/<int:id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    print("\n" * 10)
-    print("ID: ", id)
-    print("\n" * 10)
-    db = get_db()
-    db.execute('DELETE FROM tokens WHERE id = ?', (id,))
-    db.commit()
+    execute_query('DELETE FROM tokens WHERE id = %s', (id,), fetch=False)
+
     return redirect(url_for('admin.dashboard'))
