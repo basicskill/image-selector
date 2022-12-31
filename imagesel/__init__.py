@@ -41,10 +41,22 @@ def create_app(test_config=None):
     from . import admin
     app.register_blueprint(admin.bp)
 
+    # Register worker blueprint
+    from . import worker
+    app.register_blueprint(worker.bp)
+
     # Implement index page showing index.html
     @app.route('/')
+    @app.route('/index')
     def index():
-        return render_template('index.html')
-        return redirect(url_for("auth.login"))
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+        elif g.user["token"] == "admin":
+            return redirect(url_for('admin.dashboard'))
+        
+        return redirect(url_for('worker.selection_choice'))
+
+    # Define possible classes
+    app.config["CLASSES"]=[f"C{i}" for i in range(1, 6)]
 
     return app

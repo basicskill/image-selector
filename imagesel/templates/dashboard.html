@@ -16,18 +16,20 @@
 
     <h2>Token overview</h2>
 
-    <table>
+    <table class="center">
         <tr>
             <th>Token</th>
             <th>Created</th>
-            <th>Expires</th>
-            <th>Used</th>
+            <th>In progress</th>
+            <th>Selected class</th>
+            <th>Delete</th>
         </tr>
         {% for token in g.tokens %}
             <tr>
                 <td>{{ token.token }}</td>
                 <td>{{ token.created }}</td>
-                <td>{{ token.used }}</td>
+                <td>{{ token.inprogress }}</td>
+                <td>{{ token.selected_class }}</td>
                 <td>
                     <form action="{{ url_for('admin.delete', id=token['id']) }}" method="post">
                         <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
@@ -37,5 +39,9 @@
         {% endfor %}
     </table>
 
-
+    <h2>Upload new images</h2>
+    <form action="{{ url_for('admin.upload_image') }}" method=post enctype=multipart/form-data>
+      <input type=file name=file>
+      <input type=submit value=Upload>
+    </form>
 {% endblock %}

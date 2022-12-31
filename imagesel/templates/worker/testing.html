@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block header %}
+  <h1>Welcome, {{ g.user['token'] }}</h1>
+{% endblock %}
+
+{% block content %}
+  <h2>Select all images in class {{ g.user['selected_class'] }}:</h2>
+
+
+  <img enctype="base64" src="data:image/png;base64, {{ image['base64'] }}" alt="{{ image['filename'] }}">
+
+{% endblock %}

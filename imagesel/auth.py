@@ -17,9 +17,6 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
     else:
-        print("#"*20)
-        print(user_id)
-        print("#"*20)
         g.user = execute_query(
             "SELECT * FROM tokens WHERE id = %s", (user_id,)
         )[0]
@@ -68,6 +65,17 @@ def login_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
+
+# Decorator for admin login required
+def admin_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None or g.user["token"] != "admin":
             return redirect(url_for('auth.login'))
 
         return view(**kwargs)

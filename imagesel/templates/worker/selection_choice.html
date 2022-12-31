@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block header %}
+  <h1>Welcome, {{ g.user['token'] }}</h1>
+{% endblock %}
+
+{% block content %}
+  <h2>Choose class for classifying images</h2>
+
+
+<label for="class_select">Choose class:</label>
+<form method=post enctype=select>
+<select name="choice" id="choice">
+  {% for class in config["CLASSES"] %}
+    <option value="{{ class }}">{{ class }}</option>
+  {% endfor %}
+</select>
+  <input type=submit value=Choose>
+</form>
+
+{% endblock %}
