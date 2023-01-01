@@ -60,19 +60,24 @@ def delete(id):
 
 
 # Upload image
-@bp.route('/upload_image', methods=('GET', 'POST'))
+@bp.route('/upload_images', methods=('GET', 'POST'))
 @admin_required
-def upload_image():
+def upload_images():
 
-    # if request.method == 'POST':
-    if 'file' not in request.files:
-        flash('No file part')
-    file = request.files['file']
-    if file.filename == '':
-        flash('No selected file')
-    
-    if file:
-        execute_query("INSERT INTO images (blob, filename) VALUES (%s, %s)", (file.read(), file.filename), fetch=False)
-        flash(f'Image "{file.filename}" uploaded successfully')
+    if request.method == 'POST':
+        # Get all images from request
+        images = request.files.getlist("images")
+
+        # Loop through all images
+        for image in images:
+            # Check if image is not empty
+            if image.filename != '':
+                # Check if mimetype is image
+                if image.mimetype.startswith('image/'):
+                    # Insert image into database
+                    execute_query("INSERT INTO images (blob, filename) VALUES (%s, %s)", (image.read(), image.filename), fetch=False)
+                    flash(f'Image NOT "{image.filename}" uploaded successfully')
+                else:
+                    flash(f'File "{image.filename}" is not an image.')
 
     return redirect(url_for('admin.dashboard'))
