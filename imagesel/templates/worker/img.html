@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<img enctype="base64" src="data:image/png;base64, {{ image['base64'] }}" alt="{{ image['filename'] }}">
+{% endblock %}

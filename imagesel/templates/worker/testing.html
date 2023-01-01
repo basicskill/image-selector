@@ -8,7 +8,23 @@
 {% block content %}
   <h2>Select all images in class {{ g.user['selected_class'] }}:</h2>
 
-
-  <img enctype="base64" src="data:image/png;base64, {{ image['base64'] }}" alt="{{ image['filename'] }}">
-
+  <table>
+    <tr>
+      <th>Image</th>
+      <th>Selected</th>
+    </tr>
+    {% for image in selected_images %}
+      <tr>
+        <td>
+          <a href="{{ url_for('worker.img', filename=image['filename']) }}">
+            <img enctype="base64" src="data:image/png;base64, {{ image['base64'] }}"
+             alt="{{ image['filename'] }}"></td>
+          </a>
+        <td><input type="checkbox" name="selected" value="{{ image['filename'] }}"></td>
+      </tr>
+    {% endfor %}
+  </table>
+  
+  <form action="/worker/testing" method="post">
+    <input type="submit" value="Submit">
 {% endblock %}

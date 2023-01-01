@@ -23,8 +23,30 @@ nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }
 .content input, .content textarea { margin-bottom: 1em; }
 .content textarea { min-height: 12em; resize: vertical; }
 input.danger { color: #cc2f2e; }
-input[type=submit] { align-self: start; min-width: 10em; }
+
+input[type=submit] { min-width: 10em; }
 .center {
     margin-left: auto;
     margin-right: auto;
-  }
+}
+
+img {
+  width: 50%;
+  height: auto;
+}
+td {
+  /* text-align: center;
+  vertical-align: middle; */
+  justify-content:center;
+}
+tr {
+  text-align: center;
+  /* center checkbox horizontally */
+  vertical-align: middle;
+  /* center checkbox vertically */
+}
+table {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
