@@ -62,4 +62,9 @@ def create_app(test_config=None):
     # Define states
     app.config["STATES"] = ["unprocessed", "processed", "holding"]
 
+    # Define number of images to be shown in each round
+    app.config["NUM_IMAGES"] = 4
+
+    # Define number of correct images to label to proceed testing
+    app.config["NUM_CORRECT"] = 1
     return app

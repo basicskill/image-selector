@@ -1,7 +1,7 @@
 import functools, base64
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, abort
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, abort,
 )
 from werkzeug.security import check_password_hash
 
