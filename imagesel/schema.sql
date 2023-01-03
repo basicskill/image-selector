@@ -1,7 +1,7 @@
 
 -- Create img_class type
 DO $$ BEGIN
-    CREATE TYPE img_class AS ENUM ('unprocessed', 'processing', 'processed');
+    CREATE TYPE img_class AS ENUM ('unprocessed', 'holding', 'processed');
     EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -32,6 +32,7 @@ CREATE TABLE images (
   id SERIAL PRIMARY KEY,
   filename TEXT NOT NULL,
   blob BYTEA NOT NULL,
+  base64_enc TEXT NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   processing img_class  NOT NULL DEFAULT 'unprocessed',
   c1_count INTEGER NOT NULL DEFAULT 0,

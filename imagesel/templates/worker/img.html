@@ -5,5 +5,9 @@
 {% endblock %}
 
 {% block content %}
-<img enctype="base64" src="data:image/png;base64, {{ image['base64'] }}" alt="{{ image['filename'] }}">
+<a href="{{ url_for('worker.testing') }}">
+    <h2>back</h2>
+</a>
+
+<img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}" alt="{{ image['filename'] }}">
 {% endblock %}

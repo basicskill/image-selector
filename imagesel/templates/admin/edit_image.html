@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Home{% endblock %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('admin.image_explorer', processing='all', classification='all') }}">
+    <h2>back</h2>
+</a>
+
+<img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}" alt="{{ image['filename'] }}">
+
+<form method="post">
+    <input type="text" name="name" value="{{ image['filename'] }}">
+    <select name="processing" id="processing">
+        <option value="" disabled selected>Current state: {{ image["processing"] }}</option>
+        {% for class in config["STATES"] %}
+        <option value="{{ class }}">Change to: {{ class }}</option>
+        {% endfor %}
+    </select>
+    <select name="classification" id="classification">
+        <option value="" disabled selected>Current classification: {{ image["classification"]}}</option>
+        <option value="non">Change to: non</option>
+        {% for classification in config["CLASSES"] %}
+        <option value="{{ classification }}">Change to: {{ classification }}</option>
+        {% endfor %}
+    </select>
+    
+    <input type="submit" value="Submit">
+
+</form>
+
+{% endblock %}

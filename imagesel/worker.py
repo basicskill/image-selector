@@ -69,7 +69,8 @@ def testing():
         image = execute_query(
             "SELECT * FROM images WHERE id = %s", (image_id,)
         )[0]
-        image["base64"] = base64.b64encode(image["blob"].tobytes()).decode()
+        print(image["base64_enc"])
+        # image["base64"] = base64.b64encode(image["blob"].tobytes()).decode()
         selected_images.append(image)
     
     return render_template("worker/testing.html", selected_images=selected_images)

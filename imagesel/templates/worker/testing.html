@@ -17,7 +17,7 @@
       <tr>
         <td>
           <a href="{{ url_for('worker.img', filename=image['filename']) }}">
-            <img enctype="base64" src="data:image/png;base64, {{ image['base64'] }}"
+            <img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}"
              alt="{{ image['filename'] }}"></td>
           </a>
         <td><input type="checkbox" name="selected" value="{{ image['filename'] }}"></td>

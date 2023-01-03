@@ -1,4 +1,4 @@
-import functools
+import functools, base64
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, abort
@@ -49,7 +49,7 @@ def dashboard():
 
         flash(error)
 
-    return render_template("dashboard.html")
+    return render_template("admin/dashboard.html")
 
 @bp.route('/<int:id>/delete', methods=('POST',))
 @admin_required
@@ -75,9 +75,97 @@ def upload_images():
                 # Check if mimetype is image
                 if image.mimetype.startswith('image/'):
                     # Insert image into database
-                    execute_query("INSERT INTO images (blob, filename) VALUES (%s, %s)", (image.read(), image.filename), fetch=False)
-                    flash(f'Image NOT "{image.filename}" uploaded successfully')
+                    base64_enc = base64.b64encode(image.read()).decode()
+                    execute_query("INSERT INTO images (blob, filename, base64_enc) VALUES (%s, %s, %s)",
+                        (image.read(), image.filename, base64_enc), fetch=False)
+                    flash(f'Image "{image.filename}" uploaded successfully')
                 else:
                     flash(f'File "{image.filename}" is not an image.')
 
-    return redirect(url_for('admin.dashboard'))
+    return redirect(url_for('admin.image_explorer'))
+
+# Image explorer page
+@bp.route('/image_explorer', methods=('GET', 'POST'))
+@admin_required
+def image_explorer():#processing=None, classification=None):
+
+
+    if request.method == 'POST':
+        # Flash error if no choice is made
+        if not request.form.get('processing') or not request.form.get('classification'):
+            flash('Please make a choice.')
+            return redirect(url_for('admin.image_explorer'))
+
+        # Get choice field from request
+        return redirect(url_for('admin.image_explorer', processing=request.form['processing'], classification=request.form['classification']))
+
+    # If request does not have "processing" and "class" args in url render template
+    if not request.args.get("processing") or not request.args.get("classification"):
+        return render_template("admin/image_explorer.html")
+
+    # Get processing and class from url
+    processing = request.args.get("processing")
+    classification = request.args.get("classification")
+
+    print(processing, classification)
+
+    # Generate image query if processing is "all" and class is "all"
+    if processing == "all" and classification == "all":
+        g.images = execute_query(
+            "SELECT * FROM images"
+        )
+    
+    # Generate image query if processing is "all" and class is not "all"
+    elif processing == "all":
+        g.images = execute_query(
+            "SELECT * FROM images WHERE classification = %s", (classification,)
+        )
+    
+    # Generate image query if processing is not "all" and class is "all"
+    elif classification == "all":
+        g.images = execute_query(
+            "SELECT * FROM images WHERE processing = %s", (processing,)
+        )
+    
+    # Generate image query if processing is not "all" and class is not "all"
+    else:
+        g.images = execute_query(
+            "SELECT * FROM images WHERE classification = %s AND processing = %s", (classification, processing)
+        )
+
+    print(len(g.images))
+
+    return render_template("admin/image_explorer.html", processing=processing, classification=classification)
+
+
+# Edit image page
+@bp.route('/<int:id>/edit_image', methods=('GET', 'POST'))
+@admin_required
+def edit_image(id):
+    # Get image from database
+    image = execute_query(
+        "SELECT * FROM images WHERE id = %s", (id,)
+    )[0]
+    if request.method == 'POST':
+        # Get form fields from request with get attribute
+        classification = request.form.get('classification')
+        processing = request.form.get('processing')
+        filename = request.form.get('filename')
+
+        # If some fields are empty copy field from image variable
+        if not classification:
+            classification = image['classification']
+        if not processing:
+            processing = image['processing']
+        if not filename:
+            filename = image['filename']
+        
+        print(f"UPDATE images SET classification = {classification}, processing = {processing}, filename = {filename} WHERE id = {id}")
+        # Update image in database
+        execute_query("UPDATE images SET classification = %s, processing = %s, filename = %s WHERE id = %s",
+            (classification, processing, filename, id), fetch=False)
+
+        # Redirect to edit image page
+        return redirect(url_for('admin.edit_image', id=id))
+        
+    return render_template("admin/edit_image.html", image=image)

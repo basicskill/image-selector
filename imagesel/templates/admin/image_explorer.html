@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block header %}
+    <h1><a href="{{ url_for('admin.dashboard') }}">Token overview</a></h1>
+    <h1><a href="{{ url_for('admin.image_explorer', classification='all', processing='all') }}"><u>Image explorer</u></a></h1>
+    <h1><a href="{{ url_for('hello') }}">Change password</a></h1>
+{% endblock %}
+
+
+{% block content%}
+<h2>Upload new images</h2>
+<form action="{{ url_for('admin.upload_images') }}" method=post enctype=multipart/form-data>
+  <input type=file name=images id="images" multiple accept="image/*">
+  <input type=submit value=Upload>
+</form>
+
+<h2>Uploaded images</h2>
+<label for="classificationselect">Choose class:</label>
+<form method=post enctype=select>
+<select name="processing" id="processing">
+    <option value="" disabled selected>Select processing type</option>
+    <option value="all">all</option>
+    {% for class in config["STATES"] %}
+    <option value="{{ class }}">{{ class }}</option>
+    {% endfor %}
+</select>
+<select name="classification" id="classification">
+    <option value="" disabled selected>Select class</option>
+    <option value="all">all</option>
+    {% for classification in config["CLASSES"] %}
+    <option value="{{ classification }}">{{ classification }}</option>
+    {% endfor %}
+</select>
+    <input type=submit value="Refresh processed type">
+</form>
+
+
+<table class="center">
+    <tr>
+        <th>Filename</th>
+        <th>Status</th>
+        <th>Class</th>
+    </tr>
+    {% for image in g.images %}
+        <tr>
+            <td><a href="{{ url_for('admin.edit_image', id=image['id']) }}">
+                <img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}"
+                 alt="{{ image['id'] }}"></td>
+              </a>
+            <td>{{ image['processing'] }}</td>
+            <td>{{ image['classification'] }}</td>
+        </tr>
+    {% endfor %}
+
+{% endblock %}

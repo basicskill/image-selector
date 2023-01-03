@@ -57,6 +57,9 @@ def create_app(test_config=None):
         return redirect(url_for('worker.selection_choice'))
 
     # Define possible classes
-    app.config["CLASSES"]=[f"C{i}" for i in range(1, 6)]
+    app.config["CLASSES"] = [f"C{i}" for i in range(1, 6)]
+
+    # Define states
+    app.config["STATES"] = ["unprocessed", "processed", "holding"]
 
     return app
