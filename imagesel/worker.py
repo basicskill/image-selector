@@ -37,15 +37,15 @@ def selection_choice():
     if request.method == 'POST':
         choice = request.form['choice']
         if error is None:
-            # Log action
-            log_action(f"User {g.user['token']} selected class {choice}")
-
             # Update user's inprogress to true and selected_class to choice
             execute_query(
                 "UPDATE tokens SET selected_class = %s, inprogress = TRUE WHERE id = %s",
                 (choice, g.user["id"]),
                 fetch=False
             )
+
+            # Log action
+            log_action(f"User {g.user['token']} selected class {choice}")
 
             return redirect(url_for('worker.testing'))
 

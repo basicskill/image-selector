@@ -89,7 +89,7 @@ def log_action(action_text):
 
     # Insert action_text into logs table
     execute_query(
-        'INSERT INTO logs (action_text)'
+        'INSERT INTO logs (textmsg)'
         ' VALUES (%s)',
         (action_text,),
         fetch=False
@@ -97,6 +97,6 @@ def log_action(action_text):
 
     # Delete rows older then 7 days
     execute_query(
-        'DELETE FROM logs WHERE timestamp < NOW() - INTERVAL \'7 days\'',
+        'DELETE FROM logs WHERE created < NOW() - INTERVAL \'7 days\'',
         fetch=False
     )

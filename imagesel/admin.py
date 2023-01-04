@@ -44,11 +44,11 @@ def dashboard():
             error = 'Token already exists.'
 
         if error is None:
-            # Log action
-            log_action(f"Token {token} created")
-
             # Add token to database
             add_user(token, "")
+
+            # Log action
+            log_action(f"Token {token} created")
 
             return redirect(url_for('admin.dashboard'))
 
@@ -62,11 +62,11 @@ def delete(id):
     # Get token from database
     token = execute_query('SELECT * FROM tokens WHERE id = %s', (id,))
 
-    # Log action
-    log_action(f"Token {token[0]['token']} deleted")
-
     # Delete token from database
     execute_query('DELETE FROM tokens WHERE id = %s', (id,), fetch=False)
+
+    # Log action
+    log_action(f"Token {token[0]['token']} deleted")
 
     return redirect(url_for('admin.dashboard'))
 
@@ -170,13 +170,13 @@ def edit_image(id):
             processing = image['processing']
         if not filename:
             filename = image['filename']
-        
-        # Log action
-        log_action(f"Image {image['filename']} edited to classification {classification} and processing {processing}")
 
         # Update image in database
         execute_query("UPDATE images SET classification = %s, processing = %s, filename = %s WHERE id = %s",
             (classification, processing, filename, id), fetch=False)
+        
+        # Log action
+        log_action(f"Image {image['filename']} edited to classification {classification} and processing {processing}")
 
         # Redirect to edit image page
         return redirect(url_for('admin.edit_image', id=id))

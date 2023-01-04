@@ -43,7 +43,4 @@ def create_app():
         
         return redirect(url_for('worker.selection_choice'))
 
-    # Log app initialization
-    db.log_action("App initialized")
-
     return app
