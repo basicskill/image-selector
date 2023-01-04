@@ -36,11 +36,7 @@ CREATE TABLE images (
   base64_enc TEXT NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   processing img_class  NOT NULL DEFAULT 'unprocessed',
-  c1_count INTEGER NOT NULL DEFAULT 0,
-  c2_count INTEGER NOT NULL DEFAULT 0,
-  c3_count INTEGER NOT NULL DEFAULT 0,
-  c4_count INTEGER NOT NULL DEFAULT 0,
-  c5_count INTEGER NOT NULL DEFAULT 0,
+  class_count INTEGER NOT NULL DEFAULT 0,
   classification voting  NOT NULL DEFAULT 'non'
 );
 

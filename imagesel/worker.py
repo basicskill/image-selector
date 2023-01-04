@@ -1,4 +1,5 @@
 import functools, sys
+from random import shuffle
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, abort, current_app
@@ -65,45 +66,50 @@ def testing():
             (g.user["selected_class"],)
         )]
 
+        # Query 4 random images with classification not equal to user's selected class
+        # and processing is equal to processed
+        session["selected_image_ids"] += [row["id"] for row in execute_query(
+            "SELECT id FROM images WHERE classification != %s AND processing = 'processed' ORDER BY RANDOM() LIMIT 4",
+            (g.user["selected_class"],)
+        )]
+
         # Query 2 random images from database where processing is equal to unprocessed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE processing = 'unprocessed' ORDER BY RANDOM() LIMIT 2",
             ()
         )]
 
-        session["session_classes"] = [True] * 4 + [False] * 2
 
-        # TODO: Shuffle selected images and classes in random order
+        # Shuffle selected images and classes in random order
+        shuffle(session["selected_image_ids"])
 
-
-    # Query images from database with id from session selected_image_ids
-    selected_images = []
-    for image_id in session["selected_image_ids"]:
-        image = execute_query(
-            "SELECT * FROM images WHERE id = %s", (image_id,)
-        )[0]
-        selected_images.append(image)
+    # Query images with id from session selected_image_ids
+    selected_images = execute_query(
+        "SELECT * FROM images WHERE id IN %s",
+        (tuple(session["selected_image_ids"]),)
+    )
 
     return render_template("worker/testing.html", selected_images=selected_images)
 
 
 # Show selected image
-@bp.route('/<filename>/img')
+@bp.route('/<str:id>/img')
 @login_required
-def img(filename):
+def img(img_id):
     # Query image from database
     image = execute_query(
-        "SELECT * FROM images WHERE filename = %s",
-        (filename,)
+        "SELECT * FROM images WHERE id = %s",
+        (img_id,)
     )[0]
     image["base64"] = base64.b64encode(image["blob"].tobytes()).decode()
 
     return render_template("worker/img.html", image=image)
 
+
 # Submit selected image
-@bp.route('/submit', methods=('POST',))
+@bp.route('/submit_testing', methods=('POST',))
 @login_required
-def submit():
+def submit_testing():
     # Get selected image id from request
     selected_image_id = request.form.keys()
 
@@ -121,13 +127,14 @@ def submit():
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
     if selected_count >= current_app.config["NUM_CORRECT"]:
-        # Change selected images which are unprocessed to holding
-        # and change their class count to 1
+        # Change selected images which are unprocessed to holding,
+        # change their class count to 1 and their classification to user's selected class
         execute_query(
-            f"UPDATE images SET processing = 'holding', {g.user['selected_class'].lower()}_count = 1 WHERE id IN %s AND processing = 'unprocessed'",
-            (tuple(selected_image_id),),
+            f"UPDATE images SET processing = 'holding', class_count = 1, classification = %s WHERE id IN %s AND processing = 'unprocessed'",
+            (g.user["selected_class"], tuple(selected_image_id)),
             fetch=False
         )
+
         # Set user labeling to true
         execute_query(
             "UPDATE tokens SET labeling = TRUE WHERE id = %s",
@@ -135,40 +142,38 @@ def submit():
             fetch=False
         )
 
-        # Clear slected image ids from session
+        # Clear selected image ids from session
         session.pop("selected_image_ids", None)
 
         return redirect(url_for('worker.labeling'))
 
     # Else show feedback page and delete token from database
-    else:
-        execute_query(
-            "DELETE FROM tokens WHERE id = %s",
-            (g.user["id"],),
-            fetch=False
-        )
+    execute_query(
+        "DELETE FROM tokens WHERE id = %s",
+        (g.user["id"],),
+        fetch=False
+    )
 
-        # Delete session
-        session.clear()
+    # Delete session
+    session.clear()
 
-        return render_template("worker/feedback.html")
+    return render_template("worker/feedback.html")
 
-
-    return redirect(url_for('worker.testing'))
 
 # Define labeling page
 @bp.route('/labeling', methods=('GET', 'POST'))
 @login_required
 def labeling():
-    print(g.user.get("labeling"))
+    # If user is not in labeling status, redirect to selection choice page
     if not g.user.get("labeling"):
         return redirect(url_for('worker.selection_choice'))
     
     # Choose 6 random images from database where processing is not equal to processed
-    session["selected_image_ids"] = [row["id"] for row in execute_query(
-        "SELECT * FROM images WHERE processing != 'processed' ORDER BY RANDOM() LIMIT 4",
-        ()
-    )]
+    if "to_be_labeled_ids" not in session:
+        session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
+            "SELECT * FROM images WHERE processing != 'processed' ORDER BY RANDOM() LIMIT 6",
+            ()
+        )]
 
     # Query images from database with id from session selected_image_ids and apply base64 encoding
     selected_images = []
@@ -188,33 +193,47 @@ def labeling_submit():
     """Update counts of selected images and change their processing to holding or processed."""
 
     # Get selected image id from request
-    selected_image_id = request.form.keys()
+    session["selected_image_ids"] = request.form.keys()
 
-    # Set processing of all selected images to holding
+    # Selected images with processing equal to unprocessed move to holding
+    # set their classification to user's selected class and class count to 1
     execute_query(
-        "UPDATE images SET processing = 'holding' WHERE id IN %s",
-        (tuple(selected_image_id),),
+        "UPDATE images SET processing = 'holding', classification = %s, class_count = 1 WHERE id IN %s AND processing = 'unprocessed'",
+        (g.user["selected_class"], tuple(session["selected_image_ids"])),
         fetch=False
     )
 
-    # Update counts of selected images
-    for image_id in selected_image_id:
-        execute_query(
-            f"UPDATE images SET {g.user['selected_class'].lower()}_count = {g.user['selected_class'].lower()}_count + 1 WHERE id = %s",
-            (image_id,),
-            fetch=False
-        )
+    # Selected images with processing equal to holding and classification equal to user's selected class
+    # increase their class count by 1
+    execute_query(
+        "UPDATE images SET class_count = class_count + 1 WHERE id IN %s AND processing = 'holding' AND classification = %s",
+        (tuple(session["selected_image_ids"]), g.user["selected_class"]),
+        fetch=False
+    )
 
-        # If count is bigger then threshold, change processing to processed
-        if execute_query(
-            f"SELECT {g.user['selected_class'].lower()}_count FROM images WHERE id = %s",
-            (image_id,)
-        )[0][f"{g.user['selected_class'].lower()}_count"] >= current_app.config["NUM_CORRECT"]:
-            execute_query(
-                "UPDATE images SET processing = 'processed' WHERE id = %s",
-                (image_id,),
-                fetch=False
-            )
+    # Selected images with processing equal to holding and classification not equal to user's selected class
+    # decrease their class count by 1
+    execute_query(
+        "UPDATE images SET class_count = class_count - 1 WHERE id IN %s AND processing = 'holding' AND classification != %s",
+        (tuple(session["selected_image_ids"]), g.user["selected_class"]),
+        fetch=False
+    )
+
+    # Selected images with processing equal to holding and class count equal to 0
+    # change their processing to unprocessed
+    execute_query(
+        "UPDATE images SET processing = 'unprocessed' WHERE id IN %s AND processing = 'holding' AND class_count = 0",
+        (tuple(session["selected_image_ids"]),),
+        fetch=False
+    )
+
+    # Selected images with processing equal to holding and class count equal to 3
+    # change their processing to processed
+    execute_query(
+        "UPDATE images SET processing = 'processed' WHERE id IN %s AND processing = 'holding' AND class_count = 3",
+        (tuple(session["selected_image_ids"]),),
+        fetch=False
+    )
         
     # Clear session
     session.clear()

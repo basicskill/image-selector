@@ -9,14 +9,17 @@ from werkzeug.security import generate_password_hash
 
 def get_db():
     if 'db' not in g:
-        # g.db = psycopg2.connect(user="mladen",
-        #                     password="password",
-        #                     host="localhost",
-        #                     port="5432",
-        #                     database="testdb")
-        DATABASE_URL = os.environ['DATABASE_URL']
-
-        g.db = psycopg2.connect(DATABASE_URL, sslmode='require')
+        
+        # Check if DATABASE_URL is set
+        if 'DATABASE_URL' not in os.environ:
+            g.db = psycopg2.connect(user="mladen",
+                                password="password",
+                                host="localhost",
+                                port="5432",
+                                database="testdb")
+        else:
+            DATABASE_URL = os.environ['DATABASE_URL']
+            g.db = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     return g.db
 

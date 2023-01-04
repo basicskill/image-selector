@@ -4,10 +4,6 @@ from flask import Flask, render_template, g, url_for, redirect
 import psycopg2
 
 def create_app():
-    # print(connection)
-    # Print args and kwargs
-    # print("Args: ", args)
-    # print("Kwargs: ", kwargs)
 
     test_config=None
     print("App started")
@@ -15,15 +11,7 @@ def create_app():
     app = Flask(__name__)#, instance_relative_config=True, host=)
     app.config.from_mapping(
         SECRET_KEY='dev',
-        # DATABASE=os.path.join(app.instance_path, 'imagedb.sqlite'),
     )
-
-    # env_config = os.getenv("APP_SETTINGS", "config.DevelopmentConfig")
-    # app.config.from_object(env_config)
-
-    # @app.route("/")
-    # def index():
-    #     return "The configured secret key is SUCCESS."
 
     # if test_config is None:
     #     # load the instance config, if it exists, when not testing
@@ -42,26 +30,22 @@ def create_app():
     @app.route('/hello')
     def hello():
         return 'Hello, World!'
-    print("Generated index page")
+
     # Init database
     from . import db
     db.init_app(app)
-    print("-> Database initialized")
     
     # Register auth blueprint
     from . import auth
     app.register_blueprint(auth.bp)
-    print("-> Auth blueprint registered")
 
     # Register admin blueprint
     from . import admin
     app.register_blueprint(admin.bp)
-    print("-> Admin blueprint registered")
 
     # Register worker blueprint
     from . import worker
     app.register_blueprint(worker.bp)
-    print("-> Worker blueprint registered")
 
     # Implement index page showing index.html
     @app.route('/')
@@ -85,8 +69,7 @@ def create_app():
 
     # Define number of correct images to label to proceed testing
     app.config["NUM_CORRECT"] = 1
-    # port = int(os.environ.get("PORT", 5000))
-    # app.run()
+
     return app
 
 # if __name__ == '__main__':
