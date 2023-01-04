@@ -83,7 +83,7 @@ def create_app(connection, response):
     port = int(os.getenv('PORT'))
 
     # port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=connection['SERVER_PORT'])
+    app.run()
 
 # if __name__ == '__main__':
 #     app = create_app()
