@@ -1,4 +1,4 @@
-import sqlite3
+import os
 
 import click
 from flask import current_app, g
@@ -9,11 +9,14 @@ from werkzeug.security import generate_password_hash
 
 def get_db():
     if 'db' not in g:
-        g.db = psycopg2.connect(user="mladen",
-                            password="password",
-                            host="localhost",
-                            port="5432",
-                            database="testdb")
+        # g.db = psycopg2.connect(user="mladen",
+        #                     password="password",
+        #                     host="localhost",
+        #                     port="5432",
+        #                     database="testdb")
+        DATABASE_URL = os.environ['DATABASE_URL']
+
+        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     return g.db
 
