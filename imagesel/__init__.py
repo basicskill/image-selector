@@ -5,8 +5,8 @@ import psycopg2
 
 def create_app(*args, **kwargs):
     # Print args and kwargs
-    print("Args: ", args)
-    print("Kwargs: ", kwargs)
+    # print("Args: ", args)
+    # print("Kwargs: ", kwargs)
 
     test_config=None
     print("App started")
@@ -17,18 +17,18 @@ def create_app(*args, **kwargs):
         # DATABASE=os.path.join(app.instance_path, 'imagedb.sqlite'),
     )
 
-    if test_config is None:
-        # load the instance config, if it exists, when not testing
-        app.config.from_myfile('config.py', silent=True)
-    else:
-        # load the test config if passed in
-        app.config.from_mapping(test_config)
+    # if test_config is None:
+    #     # load the instance config, if it exists, when not testing
+    #     app.config.from_myfile('config.py', silent=True)
+    # else:
+    #     # load the test config if passed in
+    #     app.config.from_mapping(test_config)
 
-    # ensure the instance folder exists
-    try:
-        os.makedirs(app.instance_path)
-    except OSError:
-        pass
+    # # ensure the instance folder exists
+    # try:
+    #     os.makedirs(app.instance_path)
+    # except OSError:
+    #     pass
 
     # a simple page that says hello
     @app.route('/hello')
