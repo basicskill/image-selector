@@ -1,7 +1,11 @@
 import functools, base64
+import io
+import gzip
+from zipfile import ZipFile
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, abort,
+    send_file, current_app
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -221,3 +225,35 @@ def change_password():
     
     return render_template("admin/change_password.html")
     
+# Page to download database
+
+@bp.route('/download_data', methods=('GET', 'POST'))
+@admin_required
+def download_data():
+
+    if request.method == 'POST':
+        # Init zip file 
+        mem = io.BytesIO()
+        zip_f = ZipFile(mem, 'w')
+        
+        # Get images from database
+        for classification in current_app.config["CLASSES"]:
+            images = execute_query(
+                "SELECT * FROM images WHERE classification = %s", (classification,)
+            )
+            # Create folder for each class
+            zip_f.writestr(f"{classification}/", "")
+
+            # Add images to zip file
+            for image in images:
+                zip_f.writestr(f"{classification}/{image['filename']}", base64.b64decode(image["base64_enc"]))
+
+        # Close zip file
+        zip_f.close()
+        mem.seek(0)
+        
+        return send_file(mem, as_attachment=True, download_name="processed_images.zip",
+                            mimetype='application/gzip')
+
+    return render_template("admin/download_data.html")
+
