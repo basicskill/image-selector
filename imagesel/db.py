@@ -16,7 +16,7 @@ def get_db():
         #                     database="testdb")
         DATABASE_URL = os.environ['DATABASE_URL']
 
-        conn = psycopg2.connect(DATABASE_URL, sslmode='require')
+        g.db = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     return g.db
 
