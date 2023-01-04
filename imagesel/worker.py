@@ -6,7 +6,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from imagesel.db import execute_query, add_user
+from imagesel.db import execute_query, add_user, log_action
 from imagesel.auth import login_required, admin_required
 import base64
 
@@ -33,11 +33,13 @@ def selection_choice():
     if g.user["selected_class"] != "non":
         return redirect(url_for('worker.testing'))
 
-    
     error = None
     if request.method == 'POST':
         choice = request.form['choice']
         if error is None:
+            # Log action
+            log_action(f"User {g.user['token']} selected class {choice}")
+
             # Update user's inprogress to true and selected_class to choice
             execute_query(
                 "UPDATE tokens SET selected_class = %s, inprogress = TRUE WHERE id = %s",
@@ -132,6 +134,9 @@ def submit_testing():
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
     if selected_count >= current_app.config["NUM_CORRECT_LABEL"]:
+        # Log action
+        log_action(f"User {g.user['token']} passed testing stage")
+
         # Change selected images which are unprocessed to holding,
         # change their class count to 1 and their classification to user's selected class
         execute_query(
@@ -151,6 +156,9 @@ def submit_testing():
         session.pop("selected_image_ids", None)
 
         return redirect(url_for('worker.labeling'))
+
+    # Log action
+    log_action(f"User {g.user['token']} failed testing stage and is being deleted")
 
     # Else show feedback page and delete token from database
     execute_query(
@@ -188,6 +196,8 @@ def labeling():
         )[0]
         selected_images.append(image)
     
+    # Log action
+
     return render_template("worker/labeling.html", selected_images=selected_images)
 
 
@@ -249,6 +259,10 @@ def labeling_submit():
         (g.user["id"],),
         fetch=False
     )
+
+    # Log action
+    log_action(f"User {g.user['token']} labeled images: {session['to_be_labeled_ids']} as {g.user['selected_class']}")
+    log_action(f"User {g.user['token']} is being deleted")
 
     # Redirect to feedback page
     return render_template("worker/feedback.html")

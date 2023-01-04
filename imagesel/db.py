@@ -82,3 +82,21 @@ def execute_query(query, args=None, fetch=True):
     cur.close()
     close_db()
     return rows
+
+
+def log_action(action_text):
+    """Insert action_text into logs database and delete rows older then 7 days."""
+
+    # Insert action_text into logs table
+    execute_query(
+        'INSERT INTO logs (action_text)'
+        ' VALUES (%s)',
+        (action_text,),
+        fetch=False
+    )
+
+    # Delete rows older then 7 days
+    execute_query(
+        'DELETE FROM logs WHERE timestamp < NOW() - INTERVAL \'7 days\'',
+        fetch=False
+    )

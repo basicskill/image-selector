@@ -40,5 +40,13 @@ CREATE TABLE images (
   classification voting  NOT NULL DEFAULT 'non'
 );
 
+-- Create logs table with id, textmsg and timestamp
+DROP TABLE IF EXISTS logs;
+
+CREATE TABLE logs (
+  id SERIAL PRIMARY KEY,
+  textmsg TEXT NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
 
 INSERT INTO tokens (token, passhash) VALUES ('admin', 'pbkdf2:sha256:260000$cmrM38xFLW1PNTw5$88fa1f8f6510dc1f0e5ede3f79a5daeb04a65e1bed5d35aab8b88f549cba6343');

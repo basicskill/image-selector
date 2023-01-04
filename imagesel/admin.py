@@ -5,7 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from imagesel.db import execute_query, add_user
+from imagesel.db import execute_query, add_user, log_action
 from imagesel.auth import login_required, admin_required
 
 # Create admin blueprint
@@ -44,7 +44,12 @@ def dashboard():
             error = 'Token already exists.'
 
         if error is None:
+            # Log action
+            log_action(f"Token {token} created")
+
+            # Add token to database
             add_user(token, "")
+
             return redirect(url_for('admin.dashboard'))
 
         flash(error)
@@ -54,6 +59,13 @@ def dashboard():
 @bp.route('/<int:id>/delete', methods=('POST',))
 @admin_required
 def delete(id):
+    # Get token from database
+    token = execute_query('SELECT * FROM tokens WHERE id = %s', (id,))
+
+    # Log action
+    log_action(f"Token {token[0]['token']} deleted")
+
+    # Delete token from database
     execute_query('DELETE FROM tokens WHERE id = %s', (id,), fetch=False)
 
     return redirect(url_for('admin.dashboard'))
@@ -79,6 +91,10 @@ def upload_images():
                     execute_query("INSERT INTO images (blob, filename, base64_enc) VALUES (%s, %s, %s)",
                         (image.read(), image.filename, base64_enc), fetch=False)
                     flash(f'Image "{image.filename}" uploaded successfully')
+
+                    # Log action
+                    log_action(f"Image {image.filename} uploaded")
+
                 else:
                     flash(f'File "{image.filename}" is not an image.')
 
@@ -87,8 +103,7 @@ def upload_images():
 # Image explorer page
 @bp.route('/image_explorer', methods=('GET', 'POST'))
 @admin_required
-def image_explorer():#processing=None, classification=None):
-
+def image_explorer():
 
     if request.method == 'POST':
         # Flash error if no choice is made
@@ -156,6 +171,9 @@ def edit_image(id):
         if not filename:
             filename = image['filename']
         
+        # Log action
+        log_action(f"Image {image['filename']} edited to classification {classification} and processing {processing}")
+
         # Update image in database
         execute_query("UPDATE images SET classification = %s, processing = %s, filename = %s WHERE id = %s",
             (classification, processing, filename, id), fetch=False)
