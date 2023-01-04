@@ -3,7 +3,7 @@ import os
 from flask import Flask, render_template, g, url_for, redirect
 import psycopg2
 
-def create_app(*args, **kwargs):
+def create_app(connection, response):
     # Print args and kwargs
     # print("Args: ", args)
     # print("Kwargs: ", kwargs)
@@ -11,11 +11,18 @@ def create_app(*args, **kwargs):
     test_config=None
     print("App started")
     # create and configure the app
-    app = Flask(__name__, instance_relative_config=True)
+    app = Flask(__name__)#, instance_relative_config=True, host=)
     app.config.from_mapping(
         SECRET_KEY='dev',
         # DATABASE=os.path.join(app.instance_path, 'imagedb.sqlite'),
     )
+
+    # env_config = os.getenv("APP_SETTINGS", "config.DevelopmentConfig")
+    # app.config.from_object(env_config)
+
+    @app.route("/")
+    def index():
+        return "The configured secret key is SUCCESS."
 
     # if test_config is None:
     #     # load the instance config, if it exists, when not testing
@@ -51,16 +58,16 @@ def create_app(*args, **kwargs):
     from . import worker
     app.register_blueprint(worker.bp)
 
-    # Implement index page showing index.html
-    @app.route('/')
-    @app.route('/index')
-    def index():
-        if g.user is None:
-            return redirect(url_for('auth.login'))
-        elif g.user["token"] == "admin":
-            return redirect(url_for('admin.dashboard'))
+    # # Implement index page showing index.html
+    # @app.route('/')
+    # @app.route('/index')
+    # def index():
+    #     if g.user is None:
+    #         return redirect(url_for('auth.login'))
+    #     elif g.user["token"] == "admin":
+    #         return redirect(url_for('admin.dashboard'))
         
-        return redirect(url_for('worker.selection_choice'))
+    #     return redirect(url_for('worker.selection_choice'))
 
     # Define possible classes
     app.config["CLASSES"] = [f"C{i}" for i in range(1, 6)]
