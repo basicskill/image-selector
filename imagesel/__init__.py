@@ -73,8 +73,9 @@ def create_app(*args, **kwargs):
 
     # Define number of correct images to label to proceed testing
     app.config["NUM_CORRECT"] = 1
-    return app
 
-if __name__ == '__main__':
-    app = create_app()
     app.run()
+
+# if __name__ == '__main__':
+#     app = create_app()
+#     app.run()
