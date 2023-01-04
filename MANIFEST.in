@@ -1,0 +1,4 @@
+include imagesel/schema.sql
+graft imagesel/static
+graft imagesel/templates
+global-exclude *.pyc
