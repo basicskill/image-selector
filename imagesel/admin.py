@@ -3,7 +3,7 @@ import functools, base64
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, abort,
 )
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from imagesel.db import execute_query, add_user, log_action
 from imagesel.auth import login_required, admin_required
@@ -182,3 +182,42 @@ def edit_image(id):
         return redirect(url_for('admin.edit_image', id=id))
         
     return render_template("admin/edit_image.html", image=image)
+
+
+# Page to change admin password
+@bp.route('/change_password', methods=('GET', 'POST'))
+@admin_required
+def change_password():
+    if request.method == 'POST':
+        # Get form fields from request
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        confirm_password = request.form['confirm_password']
+
+        # Get admin from database
+        admin = execute_query(
+            "SELECT * FROM tokens WHERE token = 'admin'"
+        )[0]
+
+        # Check if old password is correct
+        if not check_password_hash(admin['passhash'], old_password):
+            flash('Incorrect password.')
+            return redirect(url_for('admin.change_password'))
+
+        # Check if new password and confirm password are the same
+        if new_password != confirm_password:
+            flash('New password and confirm password are not the same.')
+            return redirect(url_for('admin.change_password'))
+
+        # Update admin password in database
+        execute_query("UPDATE tokens SET passhash = %s WHERE token = 'admin'",
+            (generate_password_hash(new_password),), 
+            fetch=False
+        )
+        flash("Password changed successfully")
+    
+        # Log action
+        log_action(f"Admin password changed")
+    
+    return render_template("admin/change_password.html")
+    
