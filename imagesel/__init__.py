@@ -81,7 +81,9 @@ def create_app(connection, response):
     # Define number of correct images to label to proceed testing
     app.config["NUM_CORRECT"] = 1
     port = int(os.getenv('PORT'))
-    app.run(port=port)
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
 # if __name__ == '__main__':
 #     app = create_app()
