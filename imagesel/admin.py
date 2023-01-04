@@ -107,8 +107,6 @@ def image_explorer():#processing=None, classification=None):
     processing = request.args.get("processing")
     classification = request.args.get("classification")
 
-    print(processing, classification)
-
     # Generate image query if processing is "all" and class is "all"
     if processing == "all" and classification == "all":
         g.images = execute_query(
@@ -132,8 +130,6 @@ def image_explorer():#processing=None, classification=None):
         g.images = execute_query(
             "SELECT * FROM images WHERE classification = %s AND processing = %s", (classification, processing)
         )
-
-    print(len(g.images))
 
     return render_template("admin/image_explorer.html", processing=processing, classification=classification)
 
@@ -160,7 +156,6 @@ def edit_image(id):
         if not filename:
             filename = image['filename']
         
-        print(f"UPDATE images SET classification = {classification}, processing = {processing}, filename = {filename} WHERE id = {id}")
         # Update image in database
         execute_query("UPDATE images SET classification = %s, processing = %s, filename = %s WHERE id = %s",
             (classification, processing, filename, id), fetch=False)

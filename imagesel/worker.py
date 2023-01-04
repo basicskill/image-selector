@@ -59,26 +59,25 @@ def testing():
         return redirect(url_for('worker.selection_choice'))
 
     if "selected_image_ids" not in session:
-        # Query 4 random images from database where classification is equal to user's selected class
+        # Query NUM_CORRECT random images from database where classification is equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] = [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE classification = %s AND processing = 'processed' ORDER BY RANDOM() LIMIT 4",
-            (g.user["selected_class"],)
+            "SELECT id FROM images WHERE classification = %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
+            (g.user["selected_class"], current_app.config["NUM_CORRECT"],)
         )]
 
-        # Query 4 random images with classification not equal to user's selected class
+        # Query NUM_INCORRECT random images with classification not equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE classification != %s AND processing = 'processed' ORDER BY RANDOM() LIMIT 4",
-            (g.user["selected_class"],)
+            "SELECT id FROM images WHERE classification != %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
+            (g.user["selected_class"], current_app.config["NUM_INCORRECT"],)
         )]
 
-        # Query 2 random images from database where processing is equal to unprocessed
+        # Query NUM_HOLDING random images from database where processing is equal to unprocessed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE processing = 'unprocessed' ORDER BY RANDOM() LIMIT 2",
-            ()
+            "SELECT id FROM images WHERE processing = 'unprocessed' ORDER BY RANDOM() LIMIT %s",
+            (current_app.config["NUM_HOLDING"],)
         )]
-
 
         # Shuffle selected images and classes in random order
         shuffle(session["selected_image_ids"])
@@ -93,7 +92,7 @@ def testing():
 
 
 # Show selected image
-@bp.route('/<str:id>/img')
+@bp.route('/<string:id>/img')
 @login_required
 def img(img_id):
     # Query image from database
@@ -124,9 +123,15 @@ def submit_testing():
         (tuple(selected_image_id), g.user["selected_class"])
     )[0]["count"]
 
+    # Count number of selected images with classification not equal to session selected class and processing is equal to processed
+    selected_count -= execute_query(
+        "SELECT COUNT(*) FROM images WHERE id IN %s AND classification != %s AND processing = 'processed'",
+        (tuple(selected_image_id), g.user["selected_class"])
+    )[0]["count"]
+
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
-    if selected_count >= current_app.config["NUM_CORRECT"]:
+    if selected_count >= current_app.config["NUM_CORRECT_LABEL"]:
         # Change selected images which are unprocessed to holding,
         # change their class count to 1 and their classification to user's selected class
         execute_query(
@@ -168,16 +173,16 @@ def labeling():
     if not g.user.get("labeling"):
         return redirect(url_for('worker.selection_choice'))
     
-    # Choose 6 random images from database where processing is not equal to processed
+    # Choose NUM_LABELING random images from database where processing is not equal to processed
     if "to_be_labeled_ids" not in session:
         session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
-            "SELECT * FROM images WHERE processing != 'processed' ORDER BY RANDOM() LIMIT 6",
-            ()
+            "SELECT * FROM images WHERE processing != 'processed' ORDER BY RANDOM() LIMIT %s",
+            (current_app.config["NUM_LABELING"],)
         )]
 
     # Query images from database with id from session selected_image_ids and apply base64 encoding
     selected_images = []
-    for image_id in session["selected_image_ids"]:
+    for image_id in session["to_be_labeled_ids"]:
         image = execute_query(
             "SELECT * FROM images WHERE id = %s", (image_id,)
         )[0]
@@ -227,11 +232,11 @@ def labeling_submit():
         fetch=False
     )
 
-    # Selected images with processing equal to holding and class count equal to 3
+    # Selected images with processing equal to holding and class count equal to NUM_VOTES
     # change their processing to processed
     execute_query(
-        "UPDATE images SET processing = 'processed' WHERE id IN %s AND processing = 'holding' AND class_count = 3",
-        (tuple(session["selected_image_ids"]),),
+        "UPDATE images SET processing = 'processed' WHERE id IN %s AND processing = 'holding' AND class_count = %s",
+        (tuple(session["selected_image_ids"]), current_app.config["NUM_VOTES"]),
         fetch=False
     )
         

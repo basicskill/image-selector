@@ -9,22 +9,9 @@ def create_app():
     print("App started")
     # create and configure the app
     app = Flask(__name__)#, instance_relative_config=True, host=)
-    app.config.from_mapping(
-        SECRET_KEY='dev',
-    )
 
-    # if test_config is None:
-    #     # load the instance config, if it exists, when not testing
-    #     app.config.from_myfile('config.py', silent=True)
-    # else:
-    #     # load the test config if passed in
-    #     app.config.from_mapping(test_config)
-
-    # # ensure the instance folder exists
-    # try:
-    #     os.makedirs(app.instance_path)
-    # except OSError:
-    #     pass
+    # Load config file
+    app.config.from_pyfile('config.py')
 
     # a simple page that says hello
     @app.route('/hello')
@@ -58,20 +45,4 @@ def create_app():
         
         return redirect(url_for('worker.selection_choice'))
 
-    # Define possible classes
-    app.config["CLASSES"] = [f"C{i}" for i in range(1, 6)]
-
-    # Define states
-    app.config["STATES"] = ["unprocessed", "processed", "holding"]
-
-    # Define number of images to be shown in each round
-    app.config["NUM_IMAGES"] = 4
-
-    # Define number of correct images to label to proceed testing
-    app.config["NUM_CORRECT"] = 1
-
     return app
-
-# if __name__ == '__main__':
-#     app = create_app()
-#     app.run()
