@@ -3,8 +3,12 @@ import os
 from flask import Flask, render_template, g, url_for, redirect
 import psycopg2
 
-def create_app(test_config=None):
+def create_app(*args, **kwargs):
+    # Print args and kwargs
+    print("Args: ", args)
+    print("Kwargs: ", kwargs)
 
+    test_config=None
     print("App started")
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
