@@ -1,1 +1,1 @@
-web: gunicorn imagesel:imagesel
+web: gunicorn imagesel:app
