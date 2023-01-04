@@ -1,1 +1,1 @@
-web: gunicorn imagesel:app
+web: gunicorn imagesel:create_app
