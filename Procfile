@@ -1,1 +1,1 @@
-web: gunicorn wsgi:imagesel
+web: gunicorn app:imagesel
