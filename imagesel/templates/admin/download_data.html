@@ -3,10 +3,12 @@
 
 
 {% block content%}
+<h2>Download data</h2>
 <form method="post">
     <input type="submit" value="Download processed images">
 </form>
 
+<h2>Logs</h2>
 <textarea readonly class="scrollabletextbox">{{ logs_content }}</textarea>
 
 {% endblock %}
