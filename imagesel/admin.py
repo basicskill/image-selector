@@ -255,5 +255,15 @@ def download_data():
         return send_file(mem, as_attachment=True, download_name="processed_images.zip",
                             mimetype='application/gzip')
 
-    return render_template("admin/download_data.html")
+    # Get all logs from database
+    logs = execute_query(
+        "SELECT * FROM logs"
+    )
+
+    logs_content = ""
+
+    for log in logs:
+        logs_content += f"{log['created']} - {log['textmsg']}\n\n"
+
+    return render_template("admin/download_data.html", logs_content=logs_content)
 

@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Home{% endblock %}
+{% block title %}Labeling{% endblock %}
 
-{% block header %}
-  <h1>Welcome, {{ g.user['token'] }}</h1>
+{% block header %}`
 {% endblock %}
 
 {% block content %}
-  <h2>Select all images in class {{ g.user['selected_class'] }}:</h2>
+  <h2>You passed the testing phase</h2>
+  <h2>Label all images that belong in class {{ g.user['selected_class'] }}:</h2>
   
   <form action="/worker/labeling_submit" method="post">
     <table>

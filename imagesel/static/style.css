@@ -50,5 +50,21 @@ tr {
 table {
   margin-left: auto;
   margin-right: auto;
-  width: 100%;
+  /* width: 100%; */
+}
+
+textarea
+{
+  width:100%;
+}
+
+input[type=checkbox]
+{
+  /* Double-sized Checkboxes */
+  -ms-transform: scale(2); /* IE */
+  -moz-transform: scale(2); /* FF */
+  -webkit-transform: scale(2); /* Safari and Chrome */
+  -o-transform: scale(2); /* Opera */
+  transform: scale(2);
+  padding: 10px;
 }

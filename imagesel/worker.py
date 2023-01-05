@@ -93,20 +93,6 @@ def testing():
     return render_template("worker/testing.html", selected_images=selected_images)
 
 
-# Show selected image
-@bp.route('/<string:id>/img')
-@login_required
-def img(img_id):
-    # Query image from database
-    image = execute_query(
-        "SELECT * FROM images WHERE id = %s",
-        (img_id,)
-    )[0]
-    image["base64"] = base64.b64encode(image["blob"].tobytes()).decode()
-
-    return render_template("worker/img.html", image=image)
-
-
 # Submit selected image
 @bp.route('/submit_testing', methods=('POST',))
 @login_required
@@ -160,6 +146,9 @@ def submit_testing():
     # Log action
     log_action(f"User {g.user['token']} failed testing stage and is being deleted")
 
+    # Save user's class selection
+    selected_class = g.user["selected_class"]
+
     # Else show feedback page and delete token from database
     execute_query(
         "DELETE FROM tokens WHERE id = %s",
@@ -170,7 +159,7 @@ def submit_testing():
     # Delete session
     session.clear()
 
-    return render_template("worker/feedback.html")
+    return render_template("worker/feedback_fail.html", selected_class=selected_class)
 
 
 # Define labeling page
@@ -249,7 +238,9 @@ def labeling_submit():
         (tuple(session["selected_image_ids"]), current_app.config["NUM_VOTES"]),
         fetch=False
     )
-        
+    # Save selected class
+    selected_class = g.user["selected_class"]
+
     # Clear session
     session.clear()
 
@@ -265,5 +256,5 @@ def labeling_submit():
     log_action(f"User {g.user['token']} is being deleted")
 
     # Redirect to feedback page
-    return render_template("worker/feedback.html")
+    return render_template("worker/feedback_success.html", selected_class=selected_class)
 

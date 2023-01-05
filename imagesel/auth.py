@@ -35,11 +35,15 @@ def login():
    
         user = execute_query(
             'SELECT * FROM tokens WHERE token = %s', (token,)
-        )[0]
+        )
 
-        if user is None:
-            error = 'Incorrect token.'
-        elif not check_password_hash(user['passhash'], password):
+        if len(user) == 0:
+            flash('Incorrect token.')
+            return render_template('auth/login.html')
+        
+        user = user[0]
+        
+        if not check_password_hash(user['passhash'], password):
             error = 'Incorrect password.'
 
         if error is None:

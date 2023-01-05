@@ -1,12 +1,11 @@
 {% extends 'base.html' %}
-{% block title %}Home{% endblock %}
+{% block title %}Testing{% endblock %}
 
 {% block header %}
-  <h1>Welcome, {{ g.user['token'] }}</h1>
 {% endblock %}
 
 {% block content %}
-  <h2>Select all images in class {{ g.user['selected_class'] }}:</h2>
+  <h2>Select all images that belong in class {{ g.user['selected_class'] }}:</h2>
   
   <form action="/worker/submit_testing" method="post">
     <table>
@@ -16,12 +15,12 @@
     </tr>
     {% for image in selected_images %}
     <tr>
-      <td><img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}"
-        alt="{{ image['id'] }}"></td>
+      <td><img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}" alt="{{ image['id'] }}"></td>
       <td><input type="checkbox" name="{{ image['id'] }}"></td>
     </tr>
     {% endfor %}
     </table>
+    <br>
     <input type="submit" value="Submit">
     
   </form>
