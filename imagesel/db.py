@@ -49,12 +49,16 @@ def init_db_command():
     init_db()
     click.echo('Initialized the POSTGRES database.')
     
-    if os.path.isdir('imagesel/images'):
+    if os.path.isdir(current_app.config['UPLOAD_FOLDER']):
         click.echo('\tRemoving existing images directory.')
-        rmtree('imagesel/images')
+        rmtree(current_app.config['UPLOAD_FOLDER'])
         click.echo('\tRemoved existing images directory.')
     
-    os.mkdir('imagesel/images')
+    os.mkdir(current_app.config['UPLOAD_FOLDER'])
+    # os.mkdir('./images_db/processed')
+    # os.mkdir('./images_db/unprocessed')
+    # os.mkdir('./images_db/holding')
+    
     click.echo('Created images directory.')
 
 

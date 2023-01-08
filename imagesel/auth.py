@@ -30,12 +30,18 @@ def load_logged_in_user():
         )[0]
 
 
-@bp.route('/login', methods=('GET', 'POST'))
+@bp.route('/login', methods=('GET',))
 def login():
+
     # Check if user is already logged in
     if g.user:
         return redirect(url_for('index'))
 
+    return render_template('auth/login.html')
+
+# Decorator for worker login
+@bp.route('/worker_login', methods=('POST',))
+def worker_login():
     if request.method == 'POST':
         username = request.form['username']
         token = request.form['token']
@@ -52,7 +58,7 @@ def login():
         user = user[0]
         
         if token != user["token"]:
-            error = 'Incorrect password.'
+            error = 'Incorrect token.'
 
         if error is None:
             session.clear()
@@ -62,8 +68,7 @@ def login():
             return redirect(url_for('index'))
 
         flash(error)
-
-    return render_template('auth/login.html')
+        redirect(url_for('auth.login'))
 
 
 # Decorator for admin login
@@ -120,7 +125,7 @@ def login_required(view):
 def admin_required(view):
     @functools.wraps(view)
     def wrapped_view(**kwargs):
-        if g.user is None or not session.get('is_admin'):
+        if g.user is None or session.get('is_admin') is None or not session.get('is_admin'):
             return redirect(url_for('auth.login'))
 
         return view(**kwargs)

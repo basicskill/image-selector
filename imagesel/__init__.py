@@ -1,12 +1,12 @@
 import os
 
-from flask import Flask, render_template, g, url_for, redirect, session
+from flask import Flask, render_template, g, url_for, redirect, session, send_from_directory
 import psycopg2
 
 def create_app():
 
     # create and configure the app
-    app = Flask(__name__)#, instance_relative_config=True, host=)
+    app = Flask(__name__)
 
     # Load config file
     app.config.from_pyfile('config.py')
@@ -42,5 +42,10 @@ def create_app():
             return redirect(url_for('admin.dashboard'))
         
         return redirect(url_for('worker.selection_choice'))
+    
+    # Add images to route
+    @app.route(f'/images/<filename>')
+    def image_dir(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     return app

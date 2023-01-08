@@ -2,7 +2,7 @@
 {% block title %}Class selection{% endblock %}
 
 {% block header %}
-  <h1>Welcome, {{ g.user['token'] }}</h1>
+  <h1>Welcome, {{ g.user['username'] }}</h1>
 {% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
 <label for="classificationselect">Choose class:</label>
 <form method=post enctype=select>
 <select name="choice" id="choice">
-  {% for class in config["CLASSES"] %}
+  {% for class in img_classes %}
     <option value="{{ class }}">{{ class }}</option>
   {% endfor %}
 </select>

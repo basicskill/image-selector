@@ -15,7 +15,7 @@
     </tr>
     {% for image in selected_images %}
     <tr>
-      <td><img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}" alt="{{ image['id'] }}"></td>
+      <td><img src="{{ url_for('image_dir', filename=image['filename']) }}" alt="{{ image['id'] }}"></td>
       <td><input type="checkbox" name="{{ image['id'] }}"></td>
     </tr>
     {% endfor %}

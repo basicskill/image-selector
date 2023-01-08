@@ -1,5 +1,5 @@
 import functools, base64
-import io
+import io, os
 import gzip
 from zipfile import ZipFile
 
@@ -31,16 +31,16 @@ def load_logged_in_user():
         )[0]
 
     else:
-        g.user = execute_query(
-            "SELECT * FROM workers WHERE id = %s", (user_id,)
-        )[0]
+        redirect(url_for('auth.login'))
 
 # Route to admin page
 @bp.route('/dashboard', methods=('GET', 'POST'))
 @admin_required
 def dashboard():
-    
-    # Get all workers from worksers table
+    print(session)
+    print(g.user)
+
+    # Get all workers from workers table
     g.workers = execute_query(
         "SELECT * FROM workers"
     )
@@ -83,6 +83,25 @@ def delete(id):
     return redirect(url_for('admin.dashboard'))
 
 
+# Delete classification type from admins page
+@bp.route('/<classification>/delete_classification', methods=('POST',))
+@admin_required
+def delete_classification(classification):
+    # Fetch classification from admins table
+    img_classes = execute_query('SELECT img_classes FROM admins')[0]['img_classes']
+
+    # Remove classification from list
+    img_classes.remove(classification)
+
+    # Update admins table
+    execute_query('UPDATE admins SET img_classes = %s', (img_classes,), fetch=False)
+
+    # Log action
+    log_action(f"Classification {classification} deleted")
+
+    return redirect(url_for('admin.image_explorer'))
+
+
 # Upload image
 @bp.route('/upload_images', methods=('GET', 'POST'))
 @admin_required
@@ -91,6 +110,7 @@ def upload_images():
     if request.method == 'POST':
         # Get all images from request
         images = request.files.getlist("images")
+        classification = request.form['classification']
 
         # Loop through all images
         for image in images:
@@ -98,17 +118,39 @@ def upload_images():
             if image.filename != '':
                 # Check if mimetype is image
                 if image.mimetype.startswith('image/'):
-                    # Insert image into database
-                    base64_enc = base64.b64encode(image.read()).decode()
-                    execute_query("INSERT INTO images (blob, filename, base64_enc) VALUES (%s, %s, %s)",
-                        (image.read(), image.filename, base64_enc), fetch=False)
-                    flash(f'Image "{image.filename}" uploaded successfully')
+                    # Check if file already exists
+                    if os.path.isfile(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename)):
+
+                        # Save image with suffix
+                        idx = 1
+                        while os.path.isfile(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename)):
+                            image.filename = image.filename.split('.')[0] + f'_{idx}.' + image.filename.split('.')[1]
+                            idx += 1
+
+                    # Save image to images folder
+                    image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename))
+
+                    # Save image metadata to database
+                    if classification == 'unprocessed':
+                        execute_query("INSERT INTO images (filename, processing) VALUES (%s, %s)",
+                            (image.filename, classification),
+                            fetch=False
+                        )
+                    else:
+                        execute_query("INSERT INTO images (filename, processing, classification) VALUES (%s, %s, %s)",
+                            (image.filename, 'processed', classification),
+                            fetch=False
+                        )
+
 
                     # Log action
-                    log_action(f"Image {image.filename} uploaded")
+                    log_action(f"Image {image.filename} uploaded as class {classification}") 
+
 
                 else:
                     flash(f'File "{image.filename}" is not an image.')
+
+        flash(f'{len(images)} images uploaded successfully')
 
     return redirect(url_for('admin.image_explorer'))
 
@@ -128,10 +170,26 @@ def image_explorer():
 
 
     # Query img_classes field from admins table
-    g.classes = execute_query(
+    class_names = execute_query(
         "SELECT img_classes FROM admins LIMIT 1"
     )[0]['img_classes']
-    print(g.classes)
+
+    # Count number of images in each class
+    class_counts = {}
+
+    # Count number of unprocessed images
+    class_counts['unprocessed'] = execute_query(
+        "SELECT COUNT(*) FROM images WHERE processing = 'unprocessed'"
+    )[0]['count']
+
+    for class_name in class_names:
+        class_counts[class_name] = execute_query(
+            "SELECT COUNT(*) FROM images WHERE classification = %s AND processing = 'processed'", 
+            (class_name,)
+        )[0]['count']
+    
+    g.classes = class_counts
+
 
     # If request does not have "processing" and "class" args in url render template
     if not request.args.get("processing") or not request.args.get("classification"):

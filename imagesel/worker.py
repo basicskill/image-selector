@@ -1,4 +1,4 @@
-import functools, sys
+import functools, sys, os
 from random import shuffle
 
 from flask import (
@@ -13,72 +13,82 @@ import base64
 # Create admin blueprint
 bp = Blueprint('worker', __name__, url_prefix='/worker')
 
-# # Before all requests run blueprint
-# @bp.before_app_request
-# def load_logged_in_user():
-#     user_id = session.get('user_id')
+# Before all requests run blueprint
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+    is_admin = session.get('is_admin')
 
-#     if user_id is None:
-#         g.user = None
-#     else:
-#         g.user = execute_query(
-#             "SELECT * FROM tokens WHERE id = %s", (user_id,)
-#         )[0]
+    if user_id is None:
+        g.user = None
+
+    elif is_admin:
+        redirect(url_for('admin.dashboard'))
+
+    else:
+        g.user = execute_query(
+            "SELECT * FROM workers WHERE id = %s", (user_id,)
+        )[0]
+
 
 # Define worker page
 @bp.route('/selection_choice', methods=('GET', 'POST'))
 @login_required
 def selection_choice():
+
     # If user is not in selection choice status, redirect to testing page
-    if g.user["selected_class"] != "non":
+    if session.get("selected_class"):
         return redirect(url_for('worker.testing'))
 
     error = None
     if request.method == 'POST':
         choice = request.form['choice']
-        if error is None:
-            # Update user's inprogress to true and selected_class to choice
-            execute_query(
-                "UPDATE tokens SET selected_class = %s, inprogress = TRUE WHERE id = %s",
-                (choice, g.user["id"]),
-                fetch=False
-            )
 
-            # Log action
-            log_action(f"User {g.user['token']} selected class {choice}")
+        # Set session attribute to selected class
+        session["selected_class"] = choice
 
-            return redirect(url_for('worker.testing'))
+        # Log action
+        log_action(f"User {g.user['token']} selected class {choice}")
 
-        flash(error)
+        return redirect(url_for('worker.testing'))
 
-    return render_template("worker/selection_choice.html")
+    # Query img_classes from admins database
+    img_classes = execute_query(
+        "SELECT img_classes FROM admins WHERE id = 1"
+    )[0]["img_classes"]
+
+    return render_template("worker/selection_choice.html", img_classes=img_classes)
 
 @bp.route('/testing', methods=('GET', 'POST'))
 @login_required
 def testing():
     # If user is not in testing status, redirect to selection choice page
-    if not g.user.get("inprogress"):
+    if not session.get("selected_class"):
         return redirect(url_for('worker.selection_choice'))
+    
+    # If user has selected class in eligible classes, redirect to labeling page
+    if session.get("selected_class") in g.user["eligible_classes"]:
+        return redirect(url_for('worker.labeling'))
 
     if "selected_image_ids" not in session:
         # Query NUM_CORRECT random images from database where classification is equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] = [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE classification = %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
-            (g.user["selected_class"], current_app.config["NUM_CORRECT"],)
+            (session.get("selected_class"), current_app.config["NUM_TEST_CORRECT"],)
         )]
 
         # Query NUM_INCORRECT random images with classification not equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE classification != %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
-            (g.user["selected_class"], current_app.config["NUM_INCORRECT"],)
+            (session.get("selected_class"), current_app.config["NUM_TEST_INCORRECT"],)
         )]
 
         # Query NUM_HOLDING random images from database where processing is equal to unprocessed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE processing = 'unprocessed' ORDER BY RANDOM() LIMIT %s",
-            (current_app.config["NUM_HOLDING"],)
+            (current_app.config["NUM_TEST_HOLDING"],)
         )]
 
         # Shuffle selected images and classes in random order

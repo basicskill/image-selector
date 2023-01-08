@@ -17,7 +17,7 @@ CREATE TABLE workers (
   id SERIAL PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
   token TEXT UNIQUE NOT NULL,
-  eligable_classes TEXT[],
+  eligible_classes TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 

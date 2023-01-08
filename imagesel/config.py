@@ -15,3 +15,6 @@ NUM_LABELING = 10
 
 # Define number of votes to move image from holding to processed
 NUM_VOTES = 3
+
+# Images upload folder
+UPLOAD_FOLDER = '/home/mladen/projekti/image-selector/images_db'

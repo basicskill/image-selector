@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
+  <form action="{{ url_for('auth.worker_login') }}" method="post">
     <label for="username">Username</label>
     <input name="username" id="username" required>
     <label for="token">Access token</label>

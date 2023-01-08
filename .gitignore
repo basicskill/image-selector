@@ -130,3 +130,5 @@ dmypy.json
 
 # Ignore env files
 site-env/
+
+images_db/
