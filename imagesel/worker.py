@@ -6,24 +6,24 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from imagesel.db import execute_query, add_user, log_action
+from imagesel.db import execute_query, log_action
 from imagesel.auth import login_required, admin_required
 import base64
 
 # Create admin blueprint
 bp = Blueprint('worker', __name__, url_prefix='/worker')
 
-# Before all requests run blueprint
-@bp.before_app_request
-def load_logged_in_user():
-    user_id = session.get('user_id')
+# # Before all requests run blueprint
+# @bp.before_app_request
+# def load_logged_in_user():
+#     user_id = session.get('user_id')
 
-    if user_id is None:
-        g.user = None
-    else:
-        g.user = execute_query(
-            "SELECT * FROM tokens WHERE id = %s", (user_id,)
-        )[0]
+#     if user_id is None:
+#         g.user = None
+#     else:
+#         g.user = execute_query(
+#             "SELECT * FROM tokens WHERE id = %s", (user_id,)
+#         )[0]
 
 # Define worker page
 @bp.route('/selection_choice', methods=('GET', 'POST'))

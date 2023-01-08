@@ -3,32 +3,30 @@
 
 
 {% block content%}
-    <h2>Token generation</h2>
+    <h2>New worker</h2>
 
     <form method="post">
-        <label for="token">Token</label>
-        <input name="token" id="token" required>
+        <label for="username">Username</label>
+        <input name="username" id="username" required>
         <input type="submit" value="Generate">
     </form>
 
-    <h2>Token overview</h2>
+    <h2>Worker overview</h2>
 
     <table class="center">
         <tr>
+            <th>Username</th>
             <th>Token</th>
             <th>Created</th>
-            <th>In progress</th>
-            <th>Selected class</th>
             <th>Delete</th>
         </tr>
-        {% for token in g.tokens %}
+        {% for worker in g.workers %}
             <tr>
-                <td>{{ token.token }}</td>
-                <td>{{ token.created }}</td>
-                <td>{{ token.inprogress }}</td>
-                <td>{{ token.selected_class }}</td>
+                <td>{{ worker.username }}</td>
+                <td>{{ worker.token }}</td>
+                <td>{{ worker.created }}</td>
                 <td>
-                    <form action="{{ url_for('admin.delete', id=token['id']) }}" method="post">
+                    <form action="{{ url_for('admin.delete', id=worker['id']) }}" method="post">
                         <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
                     </form>
                 </td>

@@ -9,6 +9,34 @@
   <input type=submit value=Upload>
 </form>
 
+<h2>Active classes</h2>
+
+<table>
+    <tr>
+        <th>Class name</th>
+        <th>Class count</th>
+        <th>Delete class</th>
+    </tr>
+    {% for class in g.classes %}
+        <tr>
+            <td>{{ class }}</td>
+            <td>{{ 0 }}</td>
+            <td>
+                <form action="" method="post">
+                    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+</table>
+
+<h3>Add new class</h3>
+<form method="post" action="{{ url_for('admin.add_class') }}">
+    <!-- <label for="clas_name">Class name</label> -->
+    <input name="new_class" id="new_class" required>
+    <input type="submit" value="Add">
+</form>
+
 <h2>Uploaded images</h2>
 <label for="classificationselect">Choose class:</label>
 <form method=post enctype=select>

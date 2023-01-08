@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template, g, url_for, redirect
+from flask import Flask, render_template, g, url_for, redirect, session
 import psycopg2
 
 def create_app():
@@ -38,7 +38,7 @@ def create_app():
     def index():
         if g.user is None:
             return redirect(url_for('auth.login'))
-        elif g.user["token"] == "admin":
+        elif session.get('is_admin'):
             return redirect(url_for('admin.dashboard'))
         
         return redirect(url_for('worker.selection_choice'))

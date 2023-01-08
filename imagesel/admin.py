@@ -9,7 +9,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from imagesel.db import execute_query, add_user, log_action
+from imagesel.db import execute_query, add_worker, log_action
 from imagesel.auth import login_required, admin_required
 
 # Create admin blueprint
@@ -19,12 +19,20 @@ bp = Blueprint('admin', __name__, url_prefix='/admin')
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
+    is_admin = session.get('is_admin')
 
     if user_id is None:
         g.user = None
+    
+    elif is_admin:
+        # Query admins table
+        g.user = execute_query(
+            "SELECT * FROM admins WHERE id = %s", (user_id,)
+        )[0]
+
     else:
         g.user = execute_query(
-            "SELECT * FROM tokens WHERE id = %s", (user_id,)
+            "SELECT * FROM workers WHERE id = %s", (user_id,)
         )[0]
 
 # Route to admin page
@@ -32,16 +40,16 @@ def load_logged_in_user():
 @admin_required
 def dashboard():
     
-    # Get all tokens from tokens table
-    g.tokens = execute_query(
-        "SELECT * FROM tokens WHERE token != 'admin'"
+    # Get all workers from worksers table
+    g.workers = execute_query(
+        "SELECT * FROM workers"
     )
 
     if request.method == 'POST':
-        token = request.form['token']
+        username = request.form['username']
         error = None
         user = execute_query(
-            "SELECT * FROM tokens WHERE token = %s", (token,)
+            "SELECT * FROM workers WHERE username = %s", (username,)
         )
 
         if len(user) > 0:
@@ -49,10 +57,10 @@ def dashboard():
 
         if error is None:
             # Add token to database
-            add_user(token, "")
+            acc_token = add_worker(username)
 
             # Log action
-            log_action(f"Token {token} created")
+            log_action(f"User {username} with access token {acc_token} created")
 
             return redirect(url_for('admin.dashboard'))
 
@@ -64,13 +72,13 @@ def dashboard():
 @admin_required
 def delete(id):
     # Get token from database
-    token = execute_query('SELECT * FROM tokens WHERE id = %s', (id,))
+    worker = execute_query('SELECT * FROM workers WHERE id = %s', (id,))
 
     # Delete token from database
-    execute_query('DELETE FROM tokens WHERE id = %s', (id,), fetch=False)
+    execute_query('DELETE FROM workers WHERE id = %s', (id,), fetch=False)
 
     # Log action
-    log_action(f"Token {token[0]['token']} deleted")
+    log_action(f"User {worker[0]['username']} deleted")
 
     return redirect(url_for('admin.dashboard'))
 
@@ -118,6 +126,13 @@ def image_explorer():
         # Get choice field from request
         return redirect(url_for('admin.image_explorer', processing=request.form['processing'], classification=request.form['classification']))
 
+
+    # Query img_classes field from admins table
+    g.classes = execute_query(
+        "SELECT img_classes FROM admins LIMIT 1"
+    )[0]['img_classes']
+    print(g.classes)
+
     # If request does not have "processing" and "class" args in url render template
     if not request.args.get("processing") or not request.args.get("classification"):
         return render_template("admin/image_explorer.html")
@@ -151,6 +166,34 @@ def image_explorer():
         )
 
     return render_template("admin/image_explorer.html", processing=processing, classification=classification)
+
+# Decorator for adding class
+@bp.route('/add_class', methods=('POST',))
+@admin_required
+def add_class():
+    # Get img_classes field from admins table
+    classes = execute_query(
+        "SELECT img_classes FROM admins"
+    )
+
+    # Get class from request
+    new_class = request.form.get('new_class')
+
+    # Check if class is not empty
+    if new_class:
+        # Check if class already exists
+        if new_class in classes[0]['img_classes']:
+            flash(f'Class "{new_class}" already exists.')
+
+        else:
+            # Add class to img_classes field in admins table
+            classes[0]['img_classes'].append(new_class)
+            execute_query("UPDATE admins SET img_classes = %s", (classes[0]['img_classes'],), fetch=False)
+
+            # Log action
+            log_action(f"Class {new_class} added")
+    
+    return redirect(url_for('admin.image_explorer'))
 
 
 # Edit image page
@@ -200,11 +243,11 @@ def change_password():
 
         # Get admin from database
         admin = execute_query(
-            "SELECT * FROM tokens WHERE token = 'admin'"
+            "SELECT * FROM admins WHERE username = 'admin'"
         )[0]
 
         # Check if old password is correct
-        if not check_password_hash(admin['passhash'], old_password):
+        if not check_password_hash(admin['password'], old_password):
             flash('Incorrect password.')
             return redirect(url_for('admin.change_password'))
 
@@ -214,7 +257,7 @@ def change_password():
             return redirect(url_for('admin.change_password'))
 
         # Update admin password in database
-        execute_query("UPDATE tokens SET passhash = %s WHERE token = 'admin'",
+        execute_query("UPDATE admins SET password = %s WHERE username = 'admin'",
             (generate_password_hash(new_password),), 
             fetch=False
         )
