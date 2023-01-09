@@ -71,10 +71,11 @@
     </tr>
     {% for image in g.images %}
         <tr>
-            <td><a href="{{ url_for('admin.edit_image', id=image['id']) }}">
+            <!-- <td><a href="{{ url_for('admin.edit_image', id=image['id']) }}">
                 <img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}"
                  alt="{{ image['id'] }}"></td>
-              </a>
+              </a> -->
+            <td>{{ image['filename'] }}</td>
             <td>{{ image['processing'] }}</td>
             <td>{{ image['classification'] }}</td>
         </tr>

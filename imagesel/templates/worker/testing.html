@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-  <h2>Select all images that belong in class {{ g.user['selected_class'] }}:</h2>
+  <h2>Select all images that belong in class {{ session['selected_class'] }}:</h2>
   
   <form action="/worker/submit_testing" method="post">
     <table>

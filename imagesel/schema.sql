@@ -9,6 +9,7 @@ CREATE TABLE admins (
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+INSERT INTO admins (username, password) VALUES ('admin', 'pbkdf2:sha256:260000$cmrM38xFLW1PNTw5$88fa1f8f6510dc1f0e5ede3f79a5daeb04a65e1bed5d35aab8b88f549cba6343');
 
 -- Create a table for storing the workers
 DROP TABLE IF EXISTS workers;
@@ -30,7 +31,7 @@ CREATE TABLE images (
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   processing TEXT NOT NULL DEFAULT 'unprocessed',
   class_count INTEGER NOT NULL DEFAULT 0,
-  classification TEXT  NOT NULL DEFAULT 'non'
+  classification TEXT NOT NULL DEFAULT 'non'
 );
 
 -- Create logs table with id, textmsg and timestamp
@@ -41,5 +42,3 @@ CREATE TABLE logs (
   textmsg TEXT NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
-INSERT INTO admins (username, password) VALUES ('admin', 'pbkdf2:sha256:260000$cmrM38xFLW1PNTw5$88fa1f8f6510dc1f0e5ede3f79a5daeb04a65e1bed5d35aab8b88f549cba6343');

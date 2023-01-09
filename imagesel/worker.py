@@ -43,9 +43,11 @@ def selection_choice():
     error = None
     if request.method == 'POST':
         choice = request.form['choice']
+        num_of_imgs = request.form['num_of_imgs']
 
         # Set session attribute to selected class
         session["selected_class"] = choice
+        session["num_of_imgs"] = num_of_imgs
 
         # Log action
         log_action(f"User {g.user['token']} selected class {choice}")
@@ -91,14 +93,13 @@ def testing():
             (current_app.config["NUM_TEST_HOLDING"],)
         )]
 
-        # Shuffle selected images and classes in random order
-        shuffle(session["selected_image_ids"])
-
     # Query images with id from session selected_image_ids
     selected_images = execute_query(
         "SELECT * FROM images WHERE id IN %s",
         (tuple(session["selected_image_ids"]),)
     )
+
+    shuffle(selected_images)
 
     return render_template("worker/testing.html", selected_images=selected_images)
 
@@ -108,43 +109,45 @@ def testing():
 @login_required
 def submit_testing():
     # Get selected image id from request
-    selected_image_id = request.form.keys()
+    selected_image_ids = request.form.keys()
 
     # Check if user selected anything
-    if not selected_image_id:
+    if not selected_image_ids:
         flash("Select at least one image")
         return redirect(url_for('worker.testing'))
 
     # Count number of selected images with classification of session selected class
-    selected_count = execute_query(
+    selected_correct = execute_query(
         "SELECT COUNT(*) FROM images WHERE id IN %s AND classification = %s AND processing = 'processed'",
-        (tuple(selected_image_id), g.user["selected_class"])
+        (tuple(selected_image_ids), session["selected_class"])
     )[0]["count"]
 
     # Count number of selected images with classification not equal to session selected class and processing is equal to processed
-    selected_count -= execute_query(
+    selected_wrong = execute_query(
         "SELECT COUNT(*) FROM images WHERE id IN %s AND classification != %s AND processing = 'processed'",
-        (tuple(selected_image_id), g.user["selected_class"])
+        (tuple(selected_image_ids), session["selected_class"])
     )[0]["count"]
+
+    print(selected_correct, selected_wrong)
 
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
-    if selected_count >= current_app.config["NUM_CORRECT_LABEL"]:
+    if selected_correct == current_app.config["NUM_TEST_CORRECT"] and selected_wrong == 0:
         # Log action
-        log_action(f"User {g.user['token']} passed testing stage")
+        log_action(f"User {g.user['username']} passed testing stage for class {session['selected_class']}")
 
         # Change selected images which are unprocessed to holding,
         # change their class count to 1 and their classification to user's selected class
         execute_query(
             f"UPDATE images SET processing = 'holding', class_count = 1, classification = %s WHERE id IN %s AND processing = 'unprocessed'",
-            (g.user["selected_class"], tuple(selected_image_id)),
+            (session["selected_class"], tuple(selected_image_ids)),
             fetch=False
         )
 
-        # Set user labeling to true
+        # Update worker database to be eligible for selected class
         execute_query(
-            "UPDATE tokens SET labeling = TRUE WHERE id = %s",
-            (g.user["id"],),
+            f"UPDATE workers SET eligible_classes = array_append(eligible_classes, %s) WHERE id = %s",
+            (session["selected_class"], g.user["id"]),
             fetch=False
         )
 
@@ -154,17 +157,12 @@ def submit_testing():
         return redirect(url_for('worker.labeling'))
 
     # Log action
-    log_action(f"User {g.user['token']} failed testing stage and is being deleted")
+    log_action(f"User {g.user['token']} failed testing for class {session['selected_class']} and is banned")
 
-    # Save user's class selection
-    selected_class = g.user["selected_class"]
+    # TODO: Add class to banned for this user
 
-    # Else show feedback page and delete token from database
-    execute_query(
-        "DELETE FROM tokens WHERE id = %s",
-        (g.user["id"],),
-        fetch=False
-    )
+    # Save user's class selection for feedback page
+    selected_class = session["selected_class"]
 
     # Delete session
     session.clear()
