@@ -42,3 +42,13 @@ CREATE TABLE logs (
   textmsg TEXT NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Create banned table for storing banned classes of workers
+DROP TABLE IF EXISTS banned;
+
+CREATE TABLE banned (
+  id SERIAL PRIMARY KEY,
+  worker_id INTEGER NOT NULL,
+  class TEXT NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

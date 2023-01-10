@@ -18,3 +18,9 @@ NUM_VOTES = 3
 
 # Images upload folder
 UPLOAD_FOLDER = '/home/mladen/projekti/image-selector/images_db'
+
+# Define number of days for deleting of logs
+LOG_DELETE_PERIOD = 7
+
+# Define number of days for deleting of bans
+BAN_DELETE_PERIOD = 2

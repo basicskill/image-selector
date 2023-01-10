@@ -5,7 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from imagesel.db import execute_query
+from imagesel.db import execute_query, refresh_bans
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -64,6 +64,7 @@ def worker_login():
             session.clear()
             session['user_id'] = user['id']
             session['is_admin'] = False
+            refresh_bans()
 
             return redirect(url_for('index'))
 

@@ -55,9 +55,6 @@ def init_db_command():
         click.echo('\tRemoved existing images directory.')
     
     os.mkdir(current_app.config['UPLOAD_FOLDER'])
-    # os.mkdir('./images_db/processed')
-    # os.mkdir('./images_db/unprocessed')
-    # os.mkdir('./images_db/holding')
     
     click.echo('Created images directory.')
 
@@ -115,6 +112,13 @@ def log_action(action_text):
 
     # Delete rows older then 7 days
     execute_query(
-        'DELETE FROM logs WHERE created < NOW() - INTERVAL \'7 days\'',
+        f'DELETE FROM logs WHERE created < NOW() - INTERVAL \'{current_app.config["LOG_DELETE_PERIOD"]} days\'',
+        fetch=False
+    )
+
+def refresh_bans():
+    # Delete rows older then 2 days from banned table
+    execute_query(
+        f'DELETE FROM banned WHERE created < NOW() - INTERVAL \'{current_app.config["BAN_DELETE_PERIOD"]} days\'',
         fetch=False
     )
