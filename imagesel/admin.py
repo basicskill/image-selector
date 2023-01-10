@@ -156,26 +156,32 @@ def upload_images():
 def image_explorer():
 
     if request.method == 'POST':
-        # Flash error if no choice is made
-        if not request.form.get('processing') or not request.form.get('classification'):
-            flash('Please make a choice.')
-            return redirect(url_for('admin.image_explorer'))
 
         # Get choice field from request
-        return redirect(url_for('admin.image_explorer', processing=request.form['processing'], classification=request.form['classification'], curr_page=1))
+        return redirect(url_for('admin.image_explorer', 
+                processing=request.form.get('processing', 'all'),
+                classification=request.form.get('classification', 'all'),
+                curr_page=request.args.get('page', 1)))
 
     # Query img_classes field from admins table
     class_names = execute_query(
         "SELECT img_classes FROM admins LIMIT 1"
     )[0]['img_classes']
 
-    # Count number of images in each class
-    class_counts = {}
+    unprocessed_classes = {}
 
     # Count number of unprocessed images
-    class_counts['unprocessed'] = execute_query(
+    unprocessed_classes['unprocessed'] = execute_query(
         "SELECT COUNT(*) FROM images WHERE processing = 'unprocessed'"
     )[0]['count']
+
+    # Count number of images in holding
+    unprocessed_classes['holding'] = execute_query(
+        "SELECT COUNT(*) FROM images WHERE processing = 'holding'"
+    )[0]['count']
+
+    # Count number of images in each class
+    class_counts = {}
 
     for class_name in class_names:
         class_counts[class_name] = execute_query(
@@ -184,14 +190,11 @@ def image_explorer():
         )[0]['count']
     
     g.classes = class_counts
-
-    # If request does not have "processing" and "class" args in url render template
-    if not request.args.get("processing") or not request.args.get("classification"):
-        return render_template("admin/image_explorer.html", curr_page=0)
+    g.unprocessed_classes = unprocessed_classes
 
     # Get processing and class from url
-    processing = request.args.get("processing")
-    classification = request.args.get("classification")
+    processing = request.args.get("processing", 'all')
+    classification = request.args.get("classification", 'all')
 
     # Generate image query if processing is "all" and class is "all"
     if processing == "all" and classification == "all":

@@ -7,6 +7,7 @@
 <form action="{{ url_for('admin.upload_images') }}" method=post enctype=multipart/form-data>
   <input type=file name=images id="images" multiple accept="image/*">
     <select name="classification" id="classification">
+        <option value="unprocessed">unprocessed</option>
         {% for classification in g.classes %}
         <option value="{{ classification }}">{{ classification }}</option>
         {% endfor %}
@@ -15,12 +16,12 @@
   <input type=submit value=Upload>
 </form>
 
-<h2>Active classes</h2>
+<h2>Labeled images</h2>
 
 <table>
     <tr>
         <th>Class name</th>
-        <th>Class count</th>
+        <th>Count</th>
         <th>Delete class</th>
     </tr>
     {% for class in g.classes %}
@@ -35,6 +36,12 @@
         </tr>
     {% endfor %}
 </table>
+{% for class in g.unprocessed_classes %}
+Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[class] }}</b>
+<br>
+{% endfor %}
+</table>
+
 
 <h3>Add new class</h3>
 <form method="post" action="{{ url_for('admin.add_class') }}">
@@ -46,7 +53,7 @@
 <label for="classificationselect">Choose processing type:</label>
 <form method=post enctype=select>
     <select name="processing" id="processing">
-        <option value="" disabled selected>{{ request.args.get('processing',"Select processing type") }}</option>
+        <option value="{{ request.args.get('processing', 'all') }}" disabled selected>{{ request.args.get('processing', 'all') }}</option>
         <option value="all">all</option>
         {% for class in config["STATES"] %}
         <option value="{{ class }}">{{ class }}</option>
@@ -55,7 +62,7 @@
     <br>
     <label for="classificationselect">Choose class:</label>
     <select name="classification" id="classification">
-        <option value="" disabled selected>{{ request.args.get('classification',"Select class") }}</option>
+        <option value="{{ request.args.get('classification', 'all') }}" disabled selected>{{ request.args.get('classification', 'all') }}</option>
         <option value="all">all</option>
         {% for classification in g.user['img_classes'] %}
         <option value="{{ classification }}">{{ classification }}</option>
@@ -69,7 +76,7 @@
 <table class="center">
     <tr>
         <th>Image</th>
-        <th>Filename</th>
+        <th></th>
         <th>Status</th>
         <th>Class</th>
     </tr>
@@ -80,7 +87,8 @@
                 <img src="{{ url_for('images.img_data', filename=image['filename']) }}"
                  alt="{{ image['filename'] }}"></td>
               </a>
-            <td>{{ image['filename'] }}</td>
+            <td><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
+                page=curr_page) }}">More details</a></td>
             <td>{{ image['processing'] }}</td>
             <td>{{ image['classification'] }}</td>
         </tr>
