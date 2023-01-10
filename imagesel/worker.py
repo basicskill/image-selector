@@ -1,4 +1,4 @@
-import functools, sys
+import functools, sys, os
 from random import shuffle
 
 from flask import (
@@ -6,7 +6,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from imagesel.db import execute_query, add_user, log_action
+from imagesel.db import execute_query, log_action
 from imagesel.auth import login_required, admin_required
 import base64
 
@@ -17,78 +17,100 @@ bp = Blueprint('worker', __name__, url_prefix='/worker')
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
+    is_admin = session.get('is_admin')
 
     if user_id is None:
         g.user = None
+
+    elif is_admin:
+        redirect(url_for('admin.dashboard'))
+
     else:
         g.user = execute_query(
-            "SELECT * FROM tokens WHERE id = %s", (user_id,)
+            "SELECT * FROM workers WHERE id = %s", (user_id,)
         )[0]
+
 
 # Define worker page
 @bp.route('/selection_choice', methods=('GET', 'POST'))
 @login_required
 def selection_choice():
+
     # If user is not in selection choice status, redirect to testing page
-    if g.user["selected_class"] != "non":
+    if session.get("selected_class"):
         return redirect(url_for('worker.testing'))
 
-    error = None
+    eligible_classes = g.user["eligible_classes"]
+    banned_classes = execute_query(
+        "SELECT class FROM banned WHERE worker_id = %s",
+        (g.user["id"],)
+    )
+    banned_classes = [row["class"] for row in banned_classes]
+
     if request.method == 'POST':
         choice = request.form['choice']
-        if error is None:
-            # Update user's inprogress to true and selected_class to choice
-            execute_query(
-                "UPDATE tokens SET selected_class = %s, inprogress = TRUE WHERE id = %s",
-                (choice, g.user["id"]),
-                fetch=False
-            )
+        num_of_imgs = request.form['num_of_imgs']
+        print(f"Choice is {choice}")
 
+        # Set session attribute to selected class
+        session["selected_class"] = choice
+        session["num_of_imgs"] = num_of_imgs
+
+        # Check if user has selected class in banned classes
+        if choice not in banned_classes:
             # Log action
-            log_action(f"User {g.user['token']} selected class {choice}")
+            log_action(f"User {g.user['username']} selected class {choice}")
 
             return redirect(url_for('worker.testing'))
+        else:
+            flash("You are banned from labeling this class!")
 
-        flash(error)
+    # Query img_classes from admins database
+    img_classes = execute_query(
+        "SELECT img_classes FROM admins WHERE id = 1"
+    )[0]["img_classes"]
 
-    return render_template("worker/selection_choice.html")
+    return render_template("worker/selection_choice.html", img_classes=img_classes, eligible_classes=eligible_classes, banned_classes=banned_classes)
 
 @bp.route('/testing', methods=('GET', 'POST'))
 @login_required
 def testing():
     # If user is not in testing status, redirect to selection choice page
-    if not g.user.get("inprogress"):
+    if not session.get("selected_class"):
         return redirect(url_for('worker.selection_choice'))
+    
+    # If user has selected class in eligible classes, redirect to labeling page
+    if session.get("selected_class") in g.user["eligible_classes"]:
+        return redirect(url_for('worker.labeling'))
 
     if "selected_image_ids" not in session:
         # Query NUM_CORRECT random images from database where classification is equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] = [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE classification = %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
-            (g.user["selected_class"], current_app.config["NUM_CORRECT"],)
+            (session.get("selected_class"), current_app.config["NUM_TEST_CORRECT"],)
         )]
 
         # Query NUM_INCORRECT random images with classification not equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE classification != %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
-            (g.user["selected_class"], current_app.config["NUM_INCORRECT"],)
+            (session.get("selected_class"), current_app.config["NUM_TEST_INCORRECT"],)
         )]
 
         # Query NUM_HOLDING random images from database where processing is equal to unprocessed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE processing = 'unprocessed' ORDER BY RANDOM() LIMIT %s",
-            (current_app.config["NUM_HOLDING"],)
+            (current_app.config["NUM_TEST_HOLDING"],)
         )]
-
-        # Shuffle selected images and classes in random order
-        shuffle(session["selected_image_ids"])
 
     # Query images with id from session selected_image_ids
     selected_images = execute_query(
         "SELECT * FROM images WHERE id IN %s",
         (tuple(session["selected_image_ids"]),)
     )
+
+    shuffle(selected_images)
 
     return render_template("worker/testing.html", selected_images=selected_images)
 
@@ -98,42 +120,51 @@ def testing():
 @login_required
 def submit_testing():
     # Get selected image id from request
-    selected_image_id = request.form.keys()
+    selected_image_ids = request.form.keys()
 
     # Check if user selected anything
-    if not selected_image_id:
+    if not selected_image_ids:
         flash("Select at least one image")
         return redirect(url_for('worker.testing'))
 
     # Count number of selected images with classification of session selected class
-    selected_count = execute_query(
+    selected_correct = execute_query(
         "SELECT COUNT(*) FROM images WHERE id IN %s AND classification = %s AND processing = 'processed'",
-        (tuple(selected_image_id), g.user["selected_class"])
+        (tuple(selected_image_ids), session["selected_class"])
     )[0]["count"]
 
     # Count number of selected images with classification not equal to session selected class and processing is equal to processed
-    selected_count -= execute_query(
+    selected_wrong = execute_query(
         "SELECT COUNT(*) FROM images WHERE id IN %s AND classification != %s AND processing = 'processed'",
-        (tuple(selected_image_id), g.user["selected_class"])
+        (tuple(selected_image_ids), session["selected_class"])
     )[0]["count"]
+
+    print(selected_correct, selected_wrong)
 
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
-    if selected_count >= current_app.config["NUM_CORRECT_LABEL"]:
+    if selected_correct == current_app.config["NUM_TEST_CORRECT"] and selected_wrong == 0:
         # Log action
-        log_action(f"User {g.user['token']} passed testing stage")
+        log_action(f"User {g.user['username']} passed testing stage for class {session['selected_class']}")
 
         # Change selected images which are unprocessed to holding,
         # change their class count to 1 and their classification to user's selected class
         execute_query(
             f"UPDATE images SET processing = 'holding', class_count = 1, classification = %s WHERE id IN %s AND processing = 'unprocessed'",
-            (g.user["selected_class"], tuple(selected_image_id)),
+            (session["selected_class"], tuple(selected_image_ids)),
             fetch=False
         )
 
-        # Set user labeling to true
+        # Update worker database to be eligible for selected class
         execute_query(
-            "UPDATE tokens SET labeling = TRUE WHERE id = %s",
+            f"UPDATE workers SET eligible_classes = array_append(eligible_classes, %s) WHERE id = %s",
+            (session["selected_class"], g.user["id"]),
+            fetch=False
+        )
+
+        # Update workers's num_labeled array in database
+        execute_query(
+            f"UPDATE workers SET num_labeled = array_append(num_labeled, 0) WHERE id = %s",
             (g.user["id"],),
             fetch=False
         )
@@ -144,17 +175,17 @@ def submit_testing():
         return redirect(url_for('worker.labeling'))
 
     # Log action
-    log_action(f"User {g.user['token']} failed testing stage and is being deleted")
+    log_action(f"User {g.user['token']} failed testing for class {session['selected_class']} and is banned")
 
-    # Save user's class selection
-    selected_class = g.user["selected_class"]
-
-    # Else show feedback page and delete token from database
+    # Add selected class to banned table for worker
     execute_query(
-        "DELETE FROM tokens WHERE id = %s",
-        (g.user["id"],),
+        "INSERT INTO banned (worker_id, class) VALUES (%s, %s)",
+        (g.user["id"], session["selected_class"]),
         fetch=False
     )
+
+    # Save user's class selection for feedback page
+    selected_class = session["selected_class"]
 
     # Delete session
     session.clear()
@@ -166,15 +197,16 @@ def submit_testing():
 @bp.route('/labeling', methods=('GET', 'POST'))
 @login_required
 def labeling():
-    # If user is not in labeling status, redirect to selection choice page
-    if not g.user.get("labeling"):
+    # Check if user is eligible for selected class
+    if session.get("selected_class") not in g.user["eligible_classes"]:
         return redirect(url_for('worker.selection_choice'))
     
     # Choose NUM_LABELING random images from database where processing is not equal to processed
+    # Choose number of images to be labeled from session
     if "to_be_labeled_ids" not in session:
         session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
             "SELECT * FROM images WHERE processing != 'processed' ORDER BY RANDOM() LIMIT %s",
-            (current_app.config["NUM_LABELING"],)
+            (session["num_of_imgs"],)
         )]
 
     # Query images from database with id from session selected_image_ids and apply base64 encoding
@@ -185,8 +217,6 @@ def labeling():
         )[0]
         selected_images.append(image)
     
-    # Log action
-
     return render_template("worker/labeling.html", selected_images=selected_images)
 
 
@@ -195,15 +225,25 @@ def labeling():
 @login_required
 def labeling_submit():
     """Update counts of selected images and change their processing to holding or processed."""
-
     # Get selected image id from request
-    session["selected_image_ids"] = request.form.keys()
+    selected_image_ids = request.form.keys()
+
+    # Check if user selected anything
+    if not selected_image_ids:
+        return render_template("worker/feedback_success.html", selected_class=session['selected_class'], num_of_labeled=0)
+
+    # Update num_labeled in worker's database at index of selected class in eligible classes
+    execute_query(
+        "UPDATE workers SET num_labeled[%s] = num_labeled[%s] + %s WHERE id = %s",
+        (g.user["eligible_classes"].index(session["selected_class"]) + 1, g.user["eligible_classes"].index(session["selected_class"]) + 1, len(selected_image_ids), g.user["id"]),
+        fetch=False
+    )
 
     # Selected images with processing equal to unprocessed move to holding
     # set their classification to user's selected class and class count to 1
     execute_query(
         "UPDATE images SET processing = 'holding', classification = %s, class_count = 1 WHERE id IN %s AND processing = 'unprocessed'",
-        (g.user["selected_class"], tuple(session["selected_image_ids"])),
+        (session["selected_class"], tuple(selected_image_ids)),
         fetch=False
     )
 
@@ -211,7 +251,7 @@ def labeling_submit():
     # increase their class count by 1
     execute_query(
         "UPDATE images SET class_count = class_count + 1 WHERE id IN %s AND processing = 'holding' AND classification = %s",
-        (tuple(session["selected_image_ids"]), g.user["selected_class"]),
+        (tuple(selected_image_ids), session["selected_class"]),
         fetch=False
     )
 
@@ -219,7 +259,7 @@ def labeling_submit():
     # decrease their class count by 1
     execute_query(
         "UPDATE images SET class_count = class_count - 1 WHERE id IN %s AND processing = 'holding' AND classification != %s",
-        (tuple(session["selected_image_ids"]), g.user["selected_class"]),
+        (tuple(selected_image_ids), session["selected_class"]),
         fetch=False
     )
 
@@ -227,7 +267,7 @@ def labeling_submit():
     # change their processing to unprocessed
     execute_query(
         "UPDATE images SET processing = 'unprocessed' WHERE id IN %s AND processing = 'holding' AND class_count = 0",
-        (tuple(session["selected_image_ids"]),),
+        (tuple(selected_image_ids),),
         fetch=False
     )
 
@@ -235,26 +275,20 @@ def labeling_submit():
     # change their processing to processed
     execute_query(
         "UPDATE images SET processing = 'processed' WHERE id IN %s AND processing = 'holding' AND class_count = %s",
-        (tuple(session["selected_image_ids"]), current_app.config["NUM_VOTES"]),
+        (tuple(selected_image_ids), current_app.config["NUM_VOTES"]),
         fetch=False
     )
+
     # Save selected class
-    selected_class = g.user["selected_class"]
+    selected_class = session["selected_class"]
+    num_of_labeled = len(selected_image_ids)
+
+    # Log action
+    log_action(f"User {g.user['token']} labeled images: {len(session['to_be_labeled_ids'])} as {session['selected_class']}")
 
     # Clear session
     session.clear()
 
-    # Delete user from database
-    execute_query(
-        "DELETE FROM tokens WHERE id = %s",
-        (g.user["id"],),
-        fetch=False
-    )
-
-    # Log action
-    log_action(f"User {g.user['token']} labeled images: {session['to_be_labeled_ids']} as {g.user['selected_class']}")
-    log_action(f"User {g.user['token']} is being deleted")
-
     # Redirect to feedback page
-    return render_template("worker/feedback_success.html", selected_class=selected_class)
+    return render_template("worker/feedback_success.html", selected_class=selected_class, num_of_labeled=num_of_labeled)
 

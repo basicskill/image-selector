@@ -1,26 +1,32 @@
 # Secret key for session
 SECRET_KEY='dev'
 
-# Define possible classes
-CLASSES = [f"C{i}" for i in range(1, 6)]
-
-# Define states
-STATES = ["unprocessed", "processed", "holding"]
-
 # Define number of correct images to show in testing phase
-NUM_CORRECT = 4
+NUM_TEST_CORRECT = 4
 
 # Define number of incorrect images to show in testing phase
-NUM_INCORRECT = 4
+NUM_TEST_INCORRECT = 4
 
 # Define number of images from holding to show in testing phase
-NUM_HOLDING = 2
-
-# Define number of correct images to label to proceed testing
-NUM_CORRECT_LABEL = 4
+NUM_TEST_HOLDING = 2
 
 # Define number of images to show in labeling phase
 NUM_LABELING = 10
 
 # Define number of votes to move image from holding to processed
 NUM_VOTES = 3
+
+# Images upload folder
+UPLOAD_FOLDER = '/home/mladen/projekti/image-selector/images_db'
+
+# Define number of days for deleting of logs
+LOG_DELETE_PERIOD = 7
+
+# Define number of days for deleting of bans
+BAN_DELETE_PERIOD = 2
+
+# Define image states
+STATES = ['processed', 'unprocessed', 'holding']
+
+# Define number of images per page
+PAGE_SIZE = 10

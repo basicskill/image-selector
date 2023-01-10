@@ -1,4 +1,5 @@
-import os
+import os, random, string
+from shutil import rmtree
 
 import click
 from flask import current_app, g
@@ -47,27 +48,41 @@ def init_db_command():
     """Clear the existing data and create new tables."""
     init_db()
     click.echo('Initialized the POSTGRES database.')
+    
+    if os.path.isdir(current_app.config['UPLOAD_FOLDER']):
+        click.echo('\tRemoving existing images directory.')
+        rmtree(current_app.config['UPLOAD_FOLDER'])
+        click.echo('\tRemoved existing images directory.')
+    
+    os.mkdir(current_app.config['UPLOAD_FOLDER'])
+    
+    click.echo('Created images directory.')
 
 
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
 
+
 # Add new user to database
-def add_user(token, password):
+def add_worker(username):
     db = get_db()
     cur = db.cursor()
 
-    hash = generate_password_hash(password)
+    # Generate access token for user in format: XXXX-XXXX
+    acc_token = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4)) + '-' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+
     cur.execute(
-        'INSERT INTO tokens (token, passhash)'
+        'INSERT INTO workers (username, token)'
         ' VALUES (%s, %s)',
-        (token, hash)
+        (username, acc_token)
     )
 
     db.commit()
     cur.close()
     close_db()
+
+    return acc_token
 
 def execute_query(query, args=None, fetch=True):
     db = get_db()
@@ -97,6 +112,13 @@ def log_action(action_text):
 
     # Delete rows older then 7 days
     execute_query(
-        'DELETE FROM logs WHERE created < NOW() - INTERVAL \'7 days\'',
+        f'DELETE FROM logs WHERE created < NOW() - INTERVAL \'{current_app.config["LOG_DELETE_PERIOD"]} days\'',
+        fetch=False
+    )
+
+def refresh_bans():
+    # Delete rows older then 2 days from banned table
+    execute_query(
+        f'DELETE FROM banned WHERE created < NOW() - INTERVAL \'{current_app.config["BAN_DELETE_PERIOD"]} days\'',
         fetch=False
     )

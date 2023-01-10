@@ -1,12 +1,12 @@
 import os
 
-from flask import Flask, render_template, g, url_for, redirect
+from flask import Flask, render_template, g, url_for, redirect, session, send_from_directory
 import psycopg2
 
 def create_app():
 
     # create and configure the app
-    app = Flask(__name__)#, instance_relative_config=True, host=)
+    app = Flask(__name__)
 
     # Load config file
     app.config.from_pyfile('config.py')
@@ -32,13 +32,18 @@ def create_app():
     from . import worker
     app.register_blueprint(worker.bp)
 
+    # Register images blueprint
+    from . import images
+    # app.jinja_env.globals.update(img_data=images.img_data)
+    app.register_blueprint(images.bp)
+
     # Implement index page showing index.html
     @app.route('/')
     @app.route('/index')
     def index():
         if g.user is None:
             return redirect(url_for('auth.login'))
-        elif g.user["token"] == "admin":
+        elif session.get('is_admin'):
             return redirect(url_for('admin.dashboard'))
         
         return redirect(url_for('worker.selection_choice'))

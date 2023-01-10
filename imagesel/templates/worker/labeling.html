@@ -5,8 +5,7 @@
 {% endblock %}
 
 {% block content %}
-  <h2>You passed the testing phase</h2>
-  <h2>Label all images that belong in class {{ g.user['selected_class'] }}:</h2>
+  <h2>Label all images that belong in class {{ session['selected_class'] }}:</h2>
   
   <form action="/worker/labeling_submit" method="post">
     <table>
@@ -16,8 +15,7 @@
     </tr>
     {% for image in selected_images %}
     <tr>
-      <td><img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}"
-        alt="{{ image['id'] }}"></td>
+      <td><img src="{{ url_for('images.img_data', filename=image['filename']) }}" alt="{{ image['id'] }}"></td>
       <td><input type="checkbox" name="{{ image['id'] }}"></td>
     </tr>
     {% endfor %}
