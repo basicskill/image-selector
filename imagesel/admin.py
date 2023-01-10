@@ -3,6 +3,7 @@ import io, os
 import gzip
 from zipfile import ZipFile
 from datetime import timedelta
+from math import ceil
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, abort,
@@ -169,7 +170,6 @@ def image_explorer():
         # Get choice field from request
         return redirect(url_for('admin.image_explorer', processing=request.form['processing'], classification=request.form['classification']))
 
-
     # Query img_classes field from admins table
     class_names = execute_query(
         "SELECT img_classes FROM admins LIMIT 1"
@@ -190,7 +190,6 @@ def image_explorer():
         )[0]['count']
     
     g.classes = class_counts
-
 
     # If request does not have "processing" and "class" args in url render template
     if not request.args.get("processing") or not request.args.get("classification"):
@@ -223,8 +222,20 @@ def image_explorer():
         g.images = execute_query(
             "SELECT * FROM images WHERE classification = %s AND processing = %s", (classification, processing)
         )
+    
+    # Implement page scrolling
+    page_size = 3
+    g.pages = ceil(len(g.images) / page_size)
+    curr_page = int(request.args.get('page', 1))
+    print(curr_page)
+    if curr_page > g.pages:
+        curr_page = g.pages
+    if curr_page < 1:
+        curr_page = 1    
 
-    return render_template("admin/image_explorer.html", processing=processing, classification=classification)
+    g.images = g.images[(curr_page - 1) * 3: curr_page * 3]
+
+    return render_template("admin/image_explorer.html", processing=processing, classification=classification, curr_page=curr_page)
 
 
 # Decorator for adding class

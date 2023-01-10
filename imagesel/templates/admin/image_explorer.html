@@ -7,7 +7,6 @@
 <form action="{{ url_for('admin.upload_images') }}" method=post enctype=multipart/form-data>
   <input type=file name=images id="images" multiple accept="image/*">
     <select name="classification" id="classification">
-        <!-- <option value="unprocessed">unprocessed</option> -->
         {% for classification in g.classes %}
         <option value="{{ classification }}">{{ classification }}</option>
         {% endfor %}
@@ -46,20 +45,22 @@
 <h2>Uploaded images</h2>
 <label for="classificationselect">Choose class:</label>
 <form method=post enctype=select>
-<select name="processing" id="processing">
-    <option value="" disabled selected>Select processing type</option>
-    <option value="all">all</option>
-    {% for class in config["STATES"] %}
-    <option value="{{ class }}">{{ class }}</option>
-    {% endfor %}
-</select>
-<select name="classification" id="classification">
-    <option value="" disabled selected>Select class</option>
-    <option value="all">all</option>
-    {% for classification in config["CLASSES"] %}
-    <option value="{{ classification }}">{{ classification }}</option>
-    {% endfor %}
-</select>
+    <select name="processing" id="processing">
+        <option value="" disabled selected>Select processing type</option>
+        <option value="all">all</option>
+        {% for class in config["STATES"] %}
+        <option value="{{ class }}">{{ class }}</option>
+        {% endfor %}
+    </select>
+    <br>
+    <select name="classification" id="classification">
+        <option value="" disabled selected>Select class</option>
+        <option value="all">all</option>
+        {% for classification in g.user['img_classes'] %}
+        <option value="{{ classification }}">{{ classification }}</option>
+        {% endfor %}
+    </select>
+    <br>
     <input type=submit value="Refresh processed type">
 </form>
 
@@ -81,5 +82,12 @@
             <td>{{ image['classification'] }}</td>
         </tr>
     {% endfor %}
+</table>
+<center>
+    <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
+                page=curr_page - 1) }}" class="previous">&laquo; Previous</a>
+    <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
+                page=curr_page + 1) }}" class="next">Next &raquo;</a>
 
+</center>
 {% endblock %}
