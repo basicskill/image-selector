@@ -77,7 +77,7 @@
         <tr>
             <td><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
                 page=curr_page) }}">
-                <img src="{{ url_for('image_dir', filename=image['filename']) }}"
+                <img src="{{ url_for('images.img_data', filename=image['filename']) }}"
                  alt="{{ image['filename'] }}"></td>
               </a>
             <td>{{ image['filename'] }}</td>

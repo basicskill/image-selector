@@ -32,6 +32,11 @@ def create_app():
     from . import worker
     app.register_blueprint(worker.bp)
 
+    # Register images blueprint
+    from . import images
+    # app.jinja_env.globals.update(img_data=images.img_data)
+    app.register_blueprint(images.bp)
+
     # Implement index page showing index.html
     @app.route('/')
     @app.route('/index')
@@ -42,10 +47,5 @@ def create_app():
             return redirect(url_for('admin.dashboard'))
         
         return redirect(url_for('worker.selection_choice'))
-    
-    # Add images to route
-    @app.route(f'/images/<filename>')
-    def image_dir(filename):
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     return app
