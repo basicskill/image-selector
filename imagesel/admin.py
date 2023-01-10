@@ -13,6 +13,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from imagesel.db import execute_query, add_worker, log_action
 from imagesel.auth import login_required, admin_required
+from imagesel.images import get_object, upload_file, rename_file
 
 # Create admin blueprint
 bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -294,7 +295,7 @@ def edit_image(id):
             (classification, processing, filename, id), fetch=False)
 
         # Rename image file
-        os.rename(os.path.join(current_app.config['UPLOAD_FOLDER'], image['filename']), os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+        rename_file(image['filename'], filename)
 
         # Log action
         log_action(f"Image {image['filename']} edited to classification {classification} and processing {processing}")

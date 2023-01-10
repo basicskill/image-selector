@@ -34,7 +34,7 @@ def create_app():
 
     # Register images blueprint
     from . import images
-    # app.jinja_env.globals.update(img_data=images.img_data)
+    images.init_app(app)
     app.register_blueprint(images.bp)
 
     # Implement index page showing index.html

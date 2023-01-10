@@ -5,6 +5,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, send_from_directory, current_app
 )
 import boto3
+import click
 
 from imagesel.db import execute_query, refresh_bans
 
@@ -31,16 +32,85 @@ def load_logged_in_user():
         )[0]
 
 
+# Get S3 connection
+def get_s3():
+
+    if 's3' not in g:
+        g.s3 = boto3.client(
+            "s3",
+            aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+            aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+        )
+    
+    return g.s3
+
+# Close S3 connection
+def close_s3(error):
+    if hasattr(g, 's3'):
+        g.s3.close()
+
+
+# Define init_app
+def init_app(app):
+    app.teardown_appcontext(close_s3)
+    app.cli.add_command(clear_db_command)
+
+
 # Get image object from S3
 def get_object(image_name):
-    s3 = boto3.client(
-        "s3",
-        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-    )
+    s3 = get_s3()
     obj = s3.get_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=image_name)
 
     return obj
+
+# Upload image to S3
+def upload_file(file, filename):
+    s3 = get_s3()
+    s3.upload_fileobj(
+        file,
+        os.environ["AWS_BUCKET_NAME"],
+        filename,
+        ExtraArgs={
+            "ACL": "public-read",
+            "ContentType": file.content_type
+        }
+    )
+
+
+# Delete file from S3
+def delete_file(filename):
+    s3 = get_s3()
+    s3.delete_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=filename)
+
+
+# Delete all images from S3
+def delete_all_files():
+    s3 = get_s3()
+    bucket = os.environ["AWS_BUCKET_NAME"]
+    for key in s3.list_objects(Bucket=bucket)['Contents']:
+        s3.delete_object(Bucket=bucket, Key=key['Key'])
+
+
+@click.command('clear-db')
+def clear_db_command():
+    """Clear the existing data from S3."""
+    delete_all_files()
+    click.echo('All files deleted from S3 bucket.')
+
+
+# Rename file in S3
+def rename_file(old_filename, new_filename):
+    s3 = get_s3()
+    s3.copy_object(
+        Bucket=os.environ["AWS_BUCKET_NAME"],
+        CopySource={
+            'Bucket': os.environ["AWS_BUCKET_NAME"],
+            'Key': old_filename
+        },
+        Key=new_filename
+    )
+    s3.delete_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=old_filename)
+
 
 
 # Add images to route

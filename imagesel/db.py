@@ -8,6 +8,7 @@ import psycopg2.extras
 
 from werkzeug.security import generate_password_hash
 
+
 def get_db():
     if 'db' not in g:
         
@@ -48,15 +49,6 @@ def init_db_command():
     """Clear the existing data and create new tables."""
     init_db()
     click.echo('Initialized the POSTGRES database.')
-    
-    if os.path.isdir(current_app.config['UPLOAD_FOLDER']):
-        click.echo('\tRemoving existing images directory.')
-        rmtree(current_app.config['UPLOAD_FOLDER'])
-        click.echo('\tRemoved existing images directory.')
-    
-    os.mkdir(current_app.config['UPLOAD_FOLDER'])
-    
-    click.echo('Created images directory.')
 
 
 def init_app(app):
