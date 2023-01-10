@@ -19,7 +19,8 @@ CREATE TABLE workers (
   username TEXT UNIQUE NOT NULL,
   token TEXT UNIQUE NOT NULL,
   eligible_classes TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  num_labeled INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[]
 );
 
 -- Create a table for storing the images
@@ -31,7 +32,7 @@ CREATE TABLE images (
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   processing TEXT NOT NULL DEFAULT 'unprocessed',
   class_count INTEGER NOT NULL DEFAULT 0,
-  classification TEXT NOT NULL DEFAULT 'non'
+  classification TEXT NOT NULL DEFAULT 'non',
 );
 
 -- Create logs table with id, textmsg and timestamp

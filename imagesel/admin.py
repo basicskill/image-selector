@@ -2,6 +2,7 @@ import functools, base64
 import io, os
 import gzip
 from zipfile import ZipFile
+from datetime import timedelta
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, abort,
@@ -14,6 +15,7 @@ from imagesel.auth import login_required, admin_required
 
 # Create admin blueprint
 bp = Blueprint('admin', __name__, url_prefix='/admin')
+
 
 # Before all requests run blueprint
 @bp.before_app_request
@@ -33,13 +35,11 @@ def load_logged_in_user():
     else:
         redirect(url_for('auth.login'))
 
+
 # Route to admin page
 @bp.route('/dashboard', methods=('GET', 'POST'))
 @admin_required
 def dashboard():
-    print(session)
-    print(g.user)
-
     # Get all workers from workers table
     g.workers = execute_query(
         "SELECT * FROM workers"
@@ -154,6 +154,7 @@ def upload_images():
 
     return redirect(url_for('admin.image_explorer'))
 
+
 # Image explorer page
 @bp.route('/image_explorer', methods=('GET', 'POST'))
 @admin_required
@@ -224,6 +225,7 @@ def image_explorer():
         )
 
     return render_template("admin/image_explorer.html", processing=processing, classification=classification)
+
 
 # Decorator for adding class
 @bp.route('/add_class', methods=('POST',))
@@ -325,9 +327,9 @@ def change_password():
         log_action(f"Admin password changed")
     
     return render_template("admin/change_password.html")
-    
-# Page to download database
 
+
+# Page to download database
 @bp.route('/download_data', methods=('GET', 'POST'))
 @admin_required
 def download_data():
@@ -368,3 +370,76 @@ def download_data():
 
     return render_template("admin/download_data.html", logs_content=logs_content)
 
+# Define user page page
+@bp.route('/user_page/<worker_name>', methods=('GET', 'POST'))
+@admin_required
+def user_page(worker_name):
+    # Get user from database
+    worker = execute_query(
+        "SELECT * FROM workers WHERE username = %s", (worker_name,)
+    )[0]
+
+    worker_eligible = {class_name: num_labeled for class_name, num_labeled in zip(worker['eligible_classes'], worker['num_labeled'])}
+
+    # Select all banned classes for worker
+    banned_classes = execute_query("SELECT * FROM banned WHERE worker_id = %s", (worker['id'],))
+
+    # Calculate ban expiration date for each class
+    for idx in range(len(banned_classes)):
+        cls = banned_classes[idx]
+        cls['ban_expiration'] = cls['created'] + timedelta(days=current_app.config['BAN_DELETE_PERIOD'])
+        banned_classes[idx] = cls
+
+    return render_template("admin/user.html", worker=worker, worker_eligible=worker_eligible, banned_classes=banned_classes)
+
+
+# Delete user eligible class
+@bp.route('/user_page/<worker_name>/delete_eligible_class/<class_name>', methods=('POST',))
+@admin_required
+def delete_eligible_class(worker_name, class_name):
+    # Get user from database
+    worker = execute_query(
+        "SELECT * FROM workers WHERE username = %s", (worker_name,)
+    )[0]
+
+    # Get index of class in eligible
+    class_idx = worker['eligible_classes'].index(class_name)
+    print(class_idx)
+
+    # Delete class from eligible
+    worker['eligible_classes'].pop(class_idx)
+
+    # Delete num_labeled for class
+    worker['num_labeled'].pop(class_idx)
+
+    # Write to database
+    execute_query("UPDATE workers SET eligible_classes = %s, num_labeled = %s WHERE username = %s",
+        (worker['eligible_classes'], worker['num_labeled'], worker_name), fetch=False)
+    
+    # Log action
+    log_action(f"Class {class_name} deleted from eligible classes for worker {worker_name}")
+
+    # Return to user page
+    return redirect(url_for('admin.user_page', worker_name=worker_name))
+
+
+# Delete ban for user in banned table
+@bp.route('/user_page/<worker_name>/delete_ban/<class_name>', methods=('POST',))
+@admin_required
+def delete_ban(worker_name, class_name):
+    # Get user from database
+    worker = execute_query(
+        "SELECT * FROM workers WHERE username = %s", (worker_name,)
+    )[0]
+
+    # Get ban from database
+    ban = execute_query("SELECT * FROM banned WHERE worker_id = %s AND class = %s", (worker['id'], class_name))[0]
+
+    # Delete ban from database
+    execute_query("DELETE FROM banned WHERE id = %s", (ban['id'],), fetch=False)
+    
+    # Log action
+    log_action(f"Ban for class {class_name} deleted for worker {worker_name}")
+
+    # Return to user page
+    return redirect(url_for('admin.user_page', worker_name=worker_name))

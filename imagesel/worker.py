@@ -162,6 +162,13 @@ def submit_testing():
             fetch=False
         )
 
+        # Update workers's num_labeled array in database
+        execute_query(
+            f"UPDATE workers SET num_labeled = array_append(num_labeled, 0) WHERE id = %s",
+            (g.user["id"],),
+            fetch=False
+        )
+
         # Clear selected image ids from session
         session.pop("selected_image_ids", None)
 
@@ -224,7 +231,13 @@ def labeling_submit():
     # Check if user selected anything
     if not selected_image_ids:
         return render_template("worker/feedback_success.html", selected_class=session['selected_class'], num_of_labeled=0)
-        return redirect(url_for('worker.labeling'))
+
+    # Update num_labeled in worker's database at index of selected class in eligible classes
+    execute_query(
+        "UPDATE workers SET num_labeled[%s] = num_labeled[%s] + %s WHERE id = %s",
+        (g.user["eligible_classes"].index(session["selected_class"]) + 1, g.user["eligible_classes"].index(session["selected_class"]) + 1, len(selected_image_ids), g.user["id"]),
+        fetch=False
+    )
 
     # Selected images with processing equal to unprocessed move to holding
     # set their classification to user's selected class and class count to 1

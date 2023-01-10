@@ -1,0 +1,53 @@
+{% extends 'admin/base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+
+{% block content%}
+    <h2>Worker: {{ worker.username }}</h2>
+    <h2>Token: {{ worker.token }}</h2>
+
+    <h2>Eligible labeling classes</h2>
+
+    <table class="center">
+        <tr>
+            <th>Class</th>
+            <th>Number of labeled images</th>
+            <th>Delete</th>
+        </tr>
+        {% for class in worker_eligible %}
+            <tr>
+                <td>{{ class }}</td>
+                <td>{{ worker_eligible[class] }}</td>
+                <td>
+                    <form action="{{ url_for('admin.delete_eligible_class', worker_name=worker.username, class_name=class) }}" method="post">
+                        <input class="danger" type="submit" value="Remove eligibility" onclick="return confirm('Are you sure?');">
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Banned from labeling classes</h2>
+
+    <table class="center">
+        <tr>
+            <th>Class</th>
+            <th>Time of ban</th>
+            <th>Expiration of ban</th>
+            <th>Remove ban</th>
+        </tr>
+        {% for cls in banned_classes %}
+            <tr>
+                <td>{{ cls.class }}</td>
+                <td>{{ cls.created }}</td>
+                <td>{{ cls.ban_expiration }}</td>
+                <td>
+                    <form action="{{ url_for('admin.delete_ban', worker_name=worker.username, class_name=cls.class) }}" method="post">
+                        <input class="danger" type="submit" value="Remove ban" onclick="return confirm('Are you sure?');">
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
