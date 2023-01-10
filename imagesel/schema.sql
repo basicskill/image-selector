@@ -6,7 +6,7 @@ CREATE TABLE admins (
   username TEXT UNIQUE NOT NULL,
   password TEXT UNIQUE NOT NULL,
   img_classes TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp)
 );
 
 INSERT INTO admins (username, password) VALUES ('admin', 'pbkdf2:sha256:260000$cmrM38xFLW1PNTw5$88fa1f8f6510dc1f0e5ede3f79a5daeb04a65e1bed5d35aab8b88f549cba6343');
@@ -19,7 +19,7 @@ CREATE TABLE workers (
   username TEXT UNIQUE NOT NULL,
   token TEXT UNIQUE NOT NULL,
   eligible_classes TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp),
   num_labeled INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[]
 );
 
@@ -29,7 +29,7 @@ DROP TABLE IF EXISTS images;
 CREATE TABLE images (
   id SERIAL PRIMARY KEY,
   filename TEXT NOT NULL,
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp),
   processing TEXT NOT NULL DEFAULT 'unprocessed',
   class_count INTEGER NOT NULL DEFAULT 0,
   classification TEXT NOT NULL DEFAULT 'non',
@@ -41,7 +41,7 @@ DROP TABLE IF EXISTS logs;
 CREATE TABLE logs (
   id SERIAL PRIMARY KEY,
   textmsg TEXT NOT NULL,
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp)
 );
 
 -- Create banned table for storing banned classes of workers
@@ -51,5 +51,5 @@ CREATE TABLE banned (
   id SERIAL PRIMARY KEY,
   worker_id INTEGER NOT NULL,
   class TEXT NOT NULL,
-  created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp)
 );

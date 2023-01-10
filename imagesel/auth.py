@@ -43,8 +43,8 @@ def login():
 @bp.route('/worker_login', methods=('POST',))
 def worker_login():
     if request.method == 'POST':
-        username = request.form['username']
-        token = request.form['token']
+        username = request.form['username'].strip()
+        token = request.form['token'].strip()
         error = None
    
         user = execute_query(
@@ -69,14 +69,14 @@ def worker_login():
             return redirect(url_for('index'))
 
         flash(error)
-        redirect(url_for('auth.login'))
+        return redirect(url_for('auth.login'))
 
 
 # Decorator for admin login
 @bp.route('/admin_login', methods=('POST',))
 def admin_login():
-    username = request.form['username']
-    password = request.form['password']
+    username = request.form['username'].strip()
+    password = request.form['password'].strip()
     error = None
 
     user = execute_query(

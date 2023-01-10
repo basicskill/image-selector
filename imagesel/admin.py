@@ -46,7 +46,7 @@ def dashboard():
     )
 
     if request.method == 'POST':
-        username = request.form['username']
+        username = request.form['username'].strip()
         error = None
         user = execute_query(
             "SELECT * FROM workers WHERE username = %s", (username,)
@@ -237,7 +237,7 @@ def add_class():
     )
 
     # Get class from request
-    new_class = request.form.get('new_class')
+    new_class = request.form.get('new_class').strip()
 
     # Check if class is not empty
     if new_class:
@@ -297,9 +297,9 @@ def edit_image(id):
 def change_password():
     if request.method == 'POST':
         # Get form fields from request
-        old_password = request.form['old_password']
-        new_password = request.form['new_password']
-        confirm_password = request.form['confirm_password']
+        old_password = request.form['old_password'].strip()
+        new_password = request.form['new_password'].strip()
+        confirm_password = request.form['confirm_password'].strip()
 
         # Get admin from database
         admin = execute_query(
