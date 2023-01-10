@@ -11,3 +11,4 @@ psycopg2-binary==2.9.5
 SQLAlchemy==1.4.45
 Werkzeug==2.2.2
 zipp==3.11.0
+boto3==1.26.46
