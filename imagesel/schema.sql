@@ -32,7 +32,7 @@ CREATE TABLE images (
   created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp),
   processing TEXT NOT NULL DEFAULT 'unprocessed',
   class_count INTEGER NOT NULL DEFAULT 0,
-  classification TEXT NOT NULL DEFAULT 'non',
+  classification TEXT NOT NULL DEFAULT 'non'
 );
 
 -- Create logs table with id, textmsg and timestamp
