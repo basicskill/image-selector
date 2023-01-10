@@ -132,3 +132,5 @@ dmypy.json
 site-env/
 
 images_db/
+
+test.py
