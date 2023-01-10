@@ -64,18 +64,29 @@ def get_object(image_name):
     return obj
 
 # Upload image to S3
-def upload_file(file, filename):
+def upload_file(image, filename):
     s3 = get_s3()
+
+    bucket = os.environ["AWS_BUCKET_NAME"]
+    file_list = s3.list_objects(Bucket=bucket).get('Contents')
+    
+    # Check if file already exists
+    if file_list is not None:
+        file_list = [file['Key'] for file in file_list]
+
+        if filename in file_list:
+            idx = 1
+            while filename in file_list:
+                filename = f"{idx}_{filename}"
+                idx += 1
+
     s3.upload_fileobj(
-        file,
+        image,
         os.environ["AWS_BUCKET_NAME"],
-        filename,
-        ExtraArgs={
-            "ACL": "public-read",
-            "ContentType": file.content_type
-        }
+        filename
     )
 
+    return filename
 
 # Delete file from S3
 def delete_file(filename):
@@ -87,8 +98,12 @@ def delete_file(filename):
 def delete_all_files():
     s3 = get_s3()
     bucket = os.environ["AWS_BUCKET_NAME"]
-    for key in s3.list_objects(Bucket=bucket)['Contents']:
-        s3.delete_object(Bucket=bucket, Key=key['Key'])
+
+    file_list = s3.list_objects(Bucket=bucket).get('Contents')
+
+    if file_list is not None:
+        for key in s3.list_objects(Bucket=bucket).get('Contents'):
+            s3.delete_object(Bucket=bucket, Key=key['Key'])
 
 
 @click.command('clear-db')

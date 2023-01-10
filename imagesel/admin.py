@@ -114,45 +114,38 @@ def upload_images():
         images = request.files.getlist("images")
         classification = request.form['classification']
 
+        num_uploaded = 0
         # Loop through all images
         for image in images:
             # Check if image is not empty
             if image.filename != '':
                 # Check if mimetype is image
                 if image.mimetype.startswith('image/'):
-                    # Check if file already exists
-                    if os.path.isfile(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename)):
 
-                        # Save image with suffix
-                        idx = 1
-                        while os.path.isfile(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename)):
-                            image.filename = image.filename.split('.')[0] + f'_{idx}.' + image.filename.split('.')[1]
-                            idx += 1
-
-                    # Save image to images folder
-                    image.save(os.path.join(current_app.config['UPLOAD_FOLDER'], image.filename))
+                    filename = upload_file(image, image.filename)
 
                     # Save image metadata to database
                     if classification == 'unprocessed':
                         execute_query("INSERT INTO images (filename, processing) VALUES (%s, %s)",
-                            (image.filename, classification),
+                            (filename, classification),
                             fetch=False
                         )
                     else:
                         execute_query("INSERT INTO images (filename, processing, classification) VALUES (%s, %s, %s)",
-                            (image.filename, 'processed', classification),
+                            (filename, 'processed', classification),
                             fetch=False
                         )
 
 
                     # Log action
-                    log_action(f"Image {image.filename} uploaded as class {classification}") 
+                    log_action(f"Image {filename} uploaded as class {classification}") 
+                    num_uploaded += 1
 
 
                 else:
                     flash(f'File "{image.filename}" is not an image.')
 
-        flash(f'{len(images)} images uploaded successfully')
+        flash(f'{num_uploaded} images uploaded successfully')
 
     return redirect(url_for('admin.image_explorer'))
 
