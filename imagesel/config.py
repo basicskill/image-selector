@@ -27,3 +27,6 @@ BAN_DELETE_PERIOD = 2
 
 # Define image states
 STATES = ['processed', 'unprocessed', 'holding']
+
+# Define number of images per page
+PAGE_SIZE = 10

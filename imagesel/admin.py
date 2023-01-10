@@ -168,7 +168,7 @@ def image_explorer():
             return redirect(url_for('admin.image_explorer'))
 
         # Get choice field from request
-        return redirect(url_for('admin.image_explorer', processing=request.form['processing'], classification=request.form['classification']))
+        return redirect(url_for('admin.image_explorer', processing=request.form['processing'], classification=request.form['classification'], curr_page=1))
 
     # Query img_classes field from admins table
     class_names = execute_query(
@@ -193,7 +193,7 @@ def image_explorer():
 
     # If request does not have "processing" and "class" args in url render template
     if not request.args.get("processing") or not request.args.get("classification"):
-        return render_template("admin/image_explorer.html")
+        return render_template("admin/image_explorer.html", curr_page=0)
 
     # Get processing and class from url
     processing = request.args.get("processing")
@@ -224,16 +224,16 @@ def image_explorer():
         )
     
     # Implement page scrolling
-    page_size = 3
+    page_size = current_app.config['PAGE_SIZE']
     g.pages = ceil(len(g.images) / page_size)
-    curr_page = int(request.args.get('page', 1))
-    print(curr_page)
+    curr_page = int(request.args.get('page', '1'))
+
     if curr_page > g.pages:
         curr_page = g.pages
     if curr_page < 1:
         curr_page = 1    
 
-    g.images = g.images[(curr_page - 1) * 3: curr_page * 3]
+    g.images = g.images[(curr_page - 1) * page_size: curr_page * page_size]
 
     return render_template("admin/image_explorer.html", processing=processing, classification=classification, curr_page=curr_page)
 
@@ -263,7 +263,7 @@ def add_class():
 
             # Log action
             log_action(f"Class {new_class} added")
-    
+
     return redirect(url_for('admin.image_explorer'))
 
 
@@ -292,7 +292,10 @@ def edit_image(id):
         # Update image in database
         execute_query("UPDATE images SET classification = %s, processing = %s, filename = %s WHERE id = %s",
             (classification, processing, filename, id), fetch=False)
-        
+
+        # Rename image file
+        os.rename(os.path.join(current_app.config['UPLOAD_FOLDER'], image['filename']), os.path.join(current_app.config['UPLOAD_FOLDER'], filename))
+
         # Log action
         log_action(f"Image {image['filename']} edited to classification {classification} and processing {processing}")
 

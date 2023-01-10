@@ -86,10 +86,14 @@ a:hover {
 }
 
 .next {
-  background-color: #04AA6D;
-  color: white;
+  background-color: #f1f1f1;
+  color: black;
 }
 
 .round {
   border-radius: 50%;
+}
+
+.border {
+  border-bottom: 1px solid lightgray; display: flex; align-items: flex-end;
 }

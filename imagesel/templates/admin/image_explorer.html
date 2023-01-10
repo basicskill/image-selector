@@ -43,18 +43,19 @@
 </form>
 
 <h2>Uploaded images</h2>
-<label for="classificationselect">Choose class:</label>
+<label for="classificationselect">Choose processing type:</label>
 <form method=post enctype=select>
     <select name="processing" id="processing">
-        <option value="" disabled selected>Select processing type</option>
+        <option value="" disabled selected>{{ request.args.get('processing',"Select processing type") }}</option>
         <option value="all">all</option>
         {% for class in config["STATES"] %}
         <option value="{{ class }}">{{ class }}</option>
         {% endfor %}
     </select>
     <br>
+    <label for="classificationselect">Choose class:</label>
     <select name="classification" id="classification">
-        <option value="" disabled selected>Select class</option>
+        <option value="" disabled selected>{{ request.args.get('classification',"Select class") }}</option>
         <option value="all">all</option>
         {% for classification in g.user['img_classes'] %}
         <option value="{{ classification }}">{{ classification }}</option>
@@ -67,16 +68,18 @@
 
 <table class="center">
     <tr>
+        <th>Image</th>
         <th>Filename</th>
         <th>Status</th>
         <th>Class</th>
     </tr>
     {% for image in g.images %}
         <tr>
-            <!-- <td><a href="{{ url_for('admin.edit_image', id=image['id']) }}">
-                <img enctype="base64" src="data:image/png;base64, {{ image['base64_enc'] }}"
-                 alt="{{ image['id'] }}"></td>
-              </a> -->
+            <td><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
+                page=curr_page) }}">
+                <img src="{{ url_for('image_dir', filename=image['filename']) }}"
+                 alt="{{ image['filename'] }}"></td>
+              </a>
             <td>{{ image['filename'] }}</td>
             <td>{{ image['processing'] }}</td>
             <td>{{ image['classification'] }}</td>
@@ -86,6 +89,7 @@
 <center>
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
                 page=curr_page - 1) }}" class="previous">&laquo; Previous</a>
+    <label for="page_number">{{ curr_page }}</label>
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
                 page=curr_page + 1) }}" class="next">Next &raquo;</a>
 
