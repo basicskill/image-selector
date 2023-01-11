@@ -56,5 +56,9 @@
     <h2>Activity</h2>
     <textarea readonly id="logTextArea" class="scrollabletextbox">{{ log_txt }}</textarea>
 
+    <br>
+    <form action="{{ url_for('admin.delete', id=worker['id']) }}" method="post">
+        <input class="danger" type="submit" value="Delete user" onclick="return confirm('Are you sure?');">
+    </form>
 
 {% endblock %}

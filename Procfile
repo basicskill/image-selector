@@ -1,1 +1,1 @@
-web: gunicorn -w 4 'imagesel:create_app()' --timeout 120
+web: gunicorn -w 4 'imagesel:create_app()' --timeout 1800

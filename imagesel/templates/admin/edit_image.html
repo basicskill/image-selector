@@ -21,7 +21,7 @@
     </select>
     <select name="classification" id="classification">
         <option value="" disabled selected>Current classification: {{ image["classification"]}}</option>
-        <option value="non">Change to: non</option>
+        <option value="/">Change to: /</option>
         {% for classification in g.user["img_classes"] %}
         <option value="{{ classification }}">Change to: {{ classification }}</option>
         {% endfor %}
