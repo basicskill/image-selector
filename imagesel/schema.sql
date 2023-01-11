@@ -32,7 +32,7 @@ CREATE TABLE images (
   created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp),
   processing TEXT NOT NULL DEFAULT 'unprocessed',
   class_count INTEGER NOT NULL DEFAULT 0,
-  classification TEXT NOT NULL DEFAULT 'non'
+  classification TEXT NOT NULL DEFAULT '/'
 );
 
 -- Create logs table with id, textmsg and timestamp
@@ -50,6 +50,18 @@ DROP TABLE IF EXISTS banned;
 CREATE TABLE banned (
   id SERIAL PRIMARY KEY,
   worker_id INTEGER NOT NULL,
+  class TEXT NOT NULL,
+  created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp)
+);
+
+
+-- Create a table for storing worker activity
+DROP TABLE IF EXISTS activity;
+
+CREATE TABLE activity (
+  id SERIAL PRIMARY KEY,
+  worker_id INTEGER NOT NULL,
+  num_labeled INTEGER NOT NULL,
   class TEXT NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp)
 );

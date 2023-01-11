@@ -22,13 +22,20 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
 
-    elif is_admin:
-        redirect(url_for('admin.dashboard'))
-
     else:
-        g.user = execute_query(
-            "SELECT * FROM workers WHERE id = %s", (user_id,)
-        )[0]
+        if is_admin:
+            # Query admins table
+            g.user = execute_query(
+                "SELECT * FROM admins WHERE id = %s", (user_id,)
+            )
+
+        else:
+            g.user = execute_query(
+                "SELECT * FROM workers WHERE id = %s", (user_id,)
+            )
+
+        if len(g.user):
+            g.user = g.user[0]
 
 
 # Define worker page
@@ -169,6 +176,13 @@ def submit_testing():
             fetch=False
         )
 
+        # Log into activity table
+        execute_query(
+        f"INSERT INTO activity (worker_id, class, num_labeled) VALUES (%s, %s, %s)",
+        (g.user["id"], session["selected_class"], -1),
+        fetch=False
+    )
+
         # Clear selected image ids from session
         session.pop("selected_image_ids", None)
 
@@ -285,6 +299,13 @@ def labeling_submit():
 
     # Log action
     log_action(f"User {g.user['token']} labeled images: {len(session['to_be_labeled_ids'])} as {session['selected_class']}")
+
+    # Log into activity table
+    execute_query(
+        f"INSERT INTO activity (worker_id, class, num_labeled) VALUES (%s, %s, %s)",
+        (g.user["id"], session["selected_class"], len(selected_image_ids)),
+        fetch=False
+    )
 
     # Clear session
     session.clear()

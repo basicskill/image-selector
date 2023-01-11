@@ -15,7 +15,7 @@
     </tr>
     {% for image in selected_images %}
     <tr>
-      <td><img src="{{ url_for('images.img_data', filename=image['filename']) }}" alt="{{ image['id'] }}"></td>
+      <td><img src="{{ url_for('images.img_data', filename=image['filename']) }}" alt="Loading image..."></td>
       <td><input type="checkbox" name="{{ image['id'] }}"></td>
     </tr>
     {% endfor %}

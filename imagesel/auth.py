@@ -18,16 +18,20 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
 
-    elif is_admin:
-        # Query admins table
-        g.user = execute_query(
-            "SELECT * FROM admins WHERE id = %s", (user_id,)
-        )[0]
-
     else:
-        g.user = execute_query(
-            "SELECT * FROM workers WHERE id = %s", (user_id,)
-        )[0]
+        if is_admin:
+            # Query admins table
+            g.user = execute_query(
+                "SELECT * FROM admins WHERE id = %s", (user_id,)
+            )
+
+        else:
+            g.user = execute_query(
+                "SELECT * FROM workers WHERE id = %s", (user_id,)
+            )
+
+        if len(g.user):
+            g.user = g.user[0]
 
 
 @bp.route('/login', methods=('GET',))
@@ -43,22 +47,18 @@ def login():
 @bp.route('/worker_login', methods=('POST',))
 def worker_login():
     if request.method == 'POST':
-        username = request.form['username'].strip()
         token = request.form['token'].strip()
         error = None
    
         user = execute_query(
-            'SELECT * FROM workers WHERE username = %s', (username,)
+            'SELECT * FROM workers WHERE token = %s', (token,)
         )
 
         if len(user) == 0:
-            flash('Incorrect username.')
+            flash('Incorrect token.')
             return render_template('auth/login.html')
         
         user = user[0]
-        
-        if token != user["token"]:
-            error = 'Incorrect token.'
 
         if error is None:
             session.clear()

@@ -20,16 +20,20 @@ def load_logged_in_user():
     if user_id is None:
         g.user = None
 
-    elif is_admin:
-        # Query admins table
-        g.user = execute_query(
-            "SELECT * FROM admins WHERE id = %s", (user_id,)
-        )[0]
-
     else:
-        g.user = execute_query(
-            "SELECT * FROM workers WHERE id = %s", (user_id,)
-        )[0]
+        if is_admin:
+            # Query admins table
+            g.user = execute_query(
+                "SELECT * FROM admins WHERE id = %s", (user_id,)
+            )
+
+        else:
+            g.user = execute_query(
+                "SELECT * FROM workers WHERE id = %s", (user_id,)
+            )
+
+        if len(g.user):
+            g.user = g.user[0]
 
 
 # Get S3 connection

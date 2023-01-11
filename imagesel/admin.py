@@ -13,7 +13,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from imagesel.db import execute_query, add_worker, log_action
 from imagesel.auth import login_required, admin_required
-from imagesel.images import get_object, upload_file, rename_file
+from imagesel.images import get_object, upload_file, rename_file, delete_file
 
 # Create admin blueprint
 bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -274,24 +274,17 @@ def edit_image(id):
     )[0]
     if request.method == 'POST':
         # Get form fields from request with get attribute
-        classification = request.form.get('classification')
-        processing = request.form.get('processing')
-        filename = request.form.get('filename')
-
-        # If some fields are empty copy field from image variable
-        if not classification:
-            classification = image['classification']
-        if not processing:
-            processing = image['processing']
-        if not filename:
-            filename = image['filename']
+        classification = request.form.get('classification', image['classification'])
+        processing = request.form.get('processing', image['processing'])
+        filename = request.form.get('filename', image['filename'])
 
         # Update image in database
         execute_query("UPDATE images SET classification = %s, processing = %s, filename = %s WHERE id = %s",
             (classification, processing, filename, id), fetch=False)
 
         # Rename image file
-        rename_file(image['filename'], filename)
+        if filename != image['filename']:
+            rename_file(image['filename'], filename)
 
         # Log action
         log_action(f"Image {image['filename']} edited to classification {classification} and processing {processing}")
@@ -300,6 +293,27 @@ def edit_image(id):
         return redirect(url_for('admin.edit_image', id=id))
         
     return render_template("admin/edit_image.html", image=image)
+
+
+# Delete image
+@bp.route('/<int:id>/delete_image', methods=('POST',))
+@admin_required
+def delete_image(id):
+    # Get image from database
+    image = execute_query(
+        "SELECT * FROM images WHERE id = %s", (id,)
+    )[0]
+
+    # Delete image from database
+    execute_query("DELETE FROM images WHERE id = %s", (id,), fetch=False)
+
+    # Delete image file
+    delete_file(image['filename'])
+
+    # Log action
+    log_action(f"Image {image['filename']} deleted")
+
+    return redirect(url_for('admin.image_explorer'))
 
 
 # Page to change admin password
@@ -376,7 +390,7 @@ def download_data():
 
     logs_content = ""
 
-    for log in logs:
+    for log in reversed(logs):
         logs_content += f"{log['created']} - {log['textmsg']}\n\n"
 
     return render_template("admin/download_data.html", logs_content=logs_content)
@@ -400,8 +414,26 @@ def user_page(worker_name):
         cls = banned_classes[idx]
         cls['ban_expiration'] = cls['created'] + timedelta(days=current_app.config['BAN_DELETE_PERIOD'])
         banned_classes[idx] = cls
+        
+    # Select all user activities from activity table
+    activities = execute_query("SELECT * FROM activity WHERE worker_id = %s", (worker['id'],))
 
-    return render_template("admin/user.html", worker=worker, worker_eligible=worker_eligible, banned_classes=banned_classes)
+    # Group activities and banned classes and sort by "created"
+    log_actions = list(sorted(activities + banned_classes, key=lambda x: x['created'], reverse=True))
+
+    # Create log text for activities
+    log_txt = ""
+    for activity in log_actions:
+        if 'num_labeled' in activity:
+            if activity['num_labeled'] == -1:
+                # User passed testing
+                log_txt += f"{activity['created']} Worker {worker['username']} passed testing for class {activity['classification']}\n\n"
+            else:
+                log_txt += f"{activity['created']} Worker {worker['username']} labeled {activity['num_labeled']} images with class {activity['classification']}\n\n"
+        else:
+            log_txt += f"{activity['created']} Worker {worker['username']} was banned from class {activity['class']} until {activity['ban_expiration']}\n\n"
+
+    return render_template("admin/user.html", worker=worker, worker_eligible=worker_eligible, banned_classes=banned_classes, log_txt=log_txt)
 
 
 # Delete user eligible class
