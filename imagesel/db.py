@@ -91,14 +91,14 @@ def execute_query(query, args=None, fetch=True):
     return rows
 
 
-def log_action(action_text):
+def log_action(action_text, worker_id=-1):
     """Insert action_text into logs database and delete rows older then 7 days."""
 
     # Insert action_text into logs table
     execute_query(
-        'INSERT INTO logs (textmsg)'
-        ' VALUES (%s)',
-        (action_text,),
+        'INSERT INTO logs (textmsg, worker_id)'
+        ' VALUES (%s, %s)',
+        (action_text, worker_id),
         fetch=False
     )
 

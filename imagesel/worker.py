@@ -66,7 +66,7 @@ def selection_choice():
         # Check if user has selected class in banned classes
         if choice not in banned_classes:
             # Log action
-            log_action(f"User {g.user['username']} selected class {choice}")
+            log_action(f"User {g.user['username']} selected class {choice}", g.user["id"])
 
             return redirect(url_for('worker.testing'))
         else:
@@ -152,7 +152,7 @@ def submit_testing():
     # Threshold is read from config file
     if selected_correct == current_app.config["NUM_TEST_CORRECT"] and selected_wrong == 0:
         # Log action
-        log_action(f"User {g.user['username']} passed testing stage for class {session['selected_class']}")
+        log_action(f"User {g.user['username']} passed testing stage for class {session['selected_class']}", g.user["id"])
 
         # Change selected images which are unprocessed to holding,
         # change their class count to 1 and their classification to user's selected class
@@ -189,7 +189,7 @@ def submit_testing():
         return redirect(url_for('worker.labeling'))
 
     # Log action
-    log_action(f"User {g.user['token']} failed testing for class {session['selected_class']} and is banned")
+    log_action(f"User {g.user['token']} failed testing for class {session['selected_class']} and is banned", g.user["id"])
 
     # Add selected class to banned table for worker
     execute_query(
@@ -298,7 +298,8 @@ def labeling_submit():
     num_of_labeled = len(selected_image_ids)
 
     # Log action
-    log_action(f"User {g.user['token']} labeled images: {len(session['to_be_labeled_ids'])} as {session['selected_class']}")
+    log_action(f"User {g.user['username']} labeled {len(session['num_of_imgs'])} images for class {session['selected_class']}",
+               g.user["id"])
 
     # Log into activity table
     execute_query(

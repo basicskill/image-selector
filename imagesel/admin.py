@@ -361,7 +361,6 @@ def change_password():
 def download_data():
 
     if request.method == 'POST':
-        print("POST")
         # Init zip file 
         mem = io.BytesIO()
         zip_f = ZipFile(mem, 'w')
@@ -403,6 +402,7 @@ def download_data():
 
     return render_template("admin/download_data.html", logs_content=logs_content)
 
+
 # Define user page page
 @bp.route('/user_page/<worker_name>', methods=('GET', 'POST'))
 @admin_required
@@ -422,25 +422,16 @@ def user_page(worker_name):
         cls = banned_classes[idx]
         cls['ban_expiration'] = cls['created'] + timedelta(days=current_app.config['BAN_DELETE_PERIOD'])
         banned_classes[idx] = cls
-        
-    # Select all user activities from activity table
-    activities = execute_query("SELECT * FROM activity WHERE worker_id = %s", (worker['id'],))
+
+    # Select all logs for worker
+    worker_logs = execute_query("SELECT * FROM logs WHERE worker_id = %s", (worker['id'],))
 
     # Group activities and banned classes and sort by "created"
-    log_actions = list(sorted(activities + banned_classes, key=lambda x: x['created'], reverse=True))
-
     # Create log text for activities
     log_txt = ""
-    for activity in log_actions:
-        if 'num_labeled' in activity:
-            if activity['num_labeled'] == -1:
-                # User passed testing
-                log_txt += f"{activity['created']} Worker {worker['username']} passed testing for class {activity['classification']}\n\n"
-            else:
-                log_txt += f"{activity['created']} Worker {worker['username']} labeled {activity['num_labeled']} images with class {activity['classification']}\n\n"
-        else:
-            log_txt += f"{activity['created']} Worker {worker['username']} was banned from class {activity['class']} until {activity['ban_expiration']}\n\n"
-
+    for txt in sorted(worker_logs, key=lambda x: x['created'], reverse=True):
+        log_txt += f"{txt['created']} - {txt['textmsg']}\n\n"
+ 
     return render_template("admin/user.html", worker=worker, worker_eligible=worker_eligible, banned_classes=banned_classes, log_txt=log_txt)
 
 
