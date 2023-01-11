@@ -2,7 +2,7 @@ import os, base64
 import time
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, send_from_directory, current_app
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, send_from_directory, current_app, make_response
 )
 import boto3
 import click
@@ -137,4 +137,6 @@ def rename_file(old_filename, new_filename):
 def img_data(filename):
     # Get image object from S3
     img = get_object(filename)
-    return img['Body'].read()
+    resp = make_response(img['Body'].read())
+    resp.cache_control.max_age = 3600
+    return resp
