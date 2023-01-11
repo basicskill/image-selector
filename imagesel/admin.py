@@ -13,8 +13,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from imagesel.db import execute_query, add_worker, log_action
 from imagesel.auth import login_required, admin_required
-from imagesel.images import get_object, upload_file, rename_file, delete_file
-
+from imagesel.images import (
+    upload_file, rename_file, delete_file, get_object
+)
 # Create admin blueprint
 bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -360,21 +361,28 @@ def change_password():
 def download_data():
 
     if request.method == 'POST':
+        print("POST")
         # Init zip file 
         mem = io.BytesIO()
         zip_f = ZipFile(mem, 'w')
         
+        # Query all classes from admin table
+        classes = execute_query(
+            "SELECT img_classes FROM admins"
+        )[0]['img_classes']
+    
         # Get images from database
-        for classification in current_app.config["CLASSES"]:
+        for classification in classes:
             images = execute_query(
-                "SELECT * FROM images WHERE classification = %s", (classification,)
+                "SELECT * FROM images WHERE classification = %s AND processing = 'processed'", (classification,)
             )
             # Create folder for each class
             zip_f.writestr(f"{classification}/", "")
 
             # Add images to zip file
             for image in images:
-                zip_f.writestr(f"{classification}/{image['filename']}", base64.b64decode(image["base64_enc"]))
+                file_name = image['filename']
+                zip_f.writestr(f"{classification}/{file_name}", get_object(file_name)['Body'].read())
 
         # Close zip file
         zip_f.close()

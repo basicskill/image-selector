@@ -6,6 +6,8 @@ from flask import (
 )
 import boto3
 import click
+from concurrent import futures
+from concurrent.futures import ProcessPoolExecutor
 
 from imagesel.db import execute_query, refresh_bans
 
@@ -48,6 +50,7 @@ def get_s3():
     
     return g.s3
 
+
 # Close S3 connection
 def close_s3(error):
     if hasattr(g, 's3'):
@@ -66,6 +69,7 @@ def get_object(image_name):
     obj = s3.get_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=image_name)
 
     return obj
+
 
 # Upload image to S3
 def upload_file(image, filename):
@@ -129,7 +133,6 @@ def rename_file(old_filename, new_filename):
         Key=new_filename
     )
     s3.delete_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=old_filename)
-
 
 
 # Add images to route
