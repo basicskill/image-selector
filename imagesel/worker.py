@@ -304,7 +304,7 @@ def labeling_submit():
     # Log into activity table
     execute_query(
         f"INSERT INTO activity (worker_id, class, num_labeled) VALUES (%s, %s, %s)",
-        (g.user["id"], session["selected_class"], len(selected_image_ids)),
+        (g.user["id"], session["selected_class"], session['num_of_imgs']),
         fetch=False
     )
 
