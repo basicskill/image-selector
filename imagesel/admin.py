@@ -493,3 +493,11 @@ def delete_ban(worker_name, class_name):
 
     # Return to user page
     return redirect(url_for('admin.user_page', worker_name=worker_name))
+
+
+# # Create submit_form page
+# @bp.route('/submit_form', methods=('GET', 'POST'))
+# @admin_required
+# def submit_form():
+#     print("Submit form")
+#     return redirect(url_for('admin.image_explorer'))

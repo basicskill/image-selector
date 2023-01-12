@@ -1,4 +1,4 @@
-import os, base64
+import os, base64, json
 import time
 
 from flask import (
@@ -143,3 +143,29 @@ def img_data(filename):
     resp = make_response(img['Body'].read())
     resp.cache_control.max_age = 3600
     return resp
+
+# @bp.route('/sign_s3/')
+# def sign_s3():
+#     print("S3")
+#     S3_BUCKET = os.environ.get('AWS_BUCKET_NAME')
+
+#     file_name = request.args.get('file_name')
+#     file_type = request.args.get('file_type')
+
+#     s3 = get_s3()
+
+#     presigned_post = s3.generate_presigned_post(
+#     Bucket = S3_BUCKET,
+#     Key = file_name,
+#     Fields = {"acl": "public-read", "Content-Type": file_type},
+#         Conditions = [
+#             {"acl": "public-read"},
+#             {"Content-Type": file_type}
+#         ],
+#         ExpiresIn = 3600
+#     )
+
+#     return json.dumps({
+#         'data': presigned_post,
+#         'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name)
+#     })
