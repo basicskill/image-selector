@@ -30,7 +30,7 @@
             <td>{{ g.classes[class] }}</td>
             <td class="width-small">
                 <form action="{{ url_for('admin.delete_classification', classification=class) }}" method="post">
-                    <input type="submit" class="btn btn-danger" value="Delete" onclick="return confirm('Are you sure?');">
+                    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
                 </form>
             </td>
         </tr>
@@ -101,4 +101,5 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
                 page=curr_page + 1) }}" class="btn btn-secondary">Next &raquo;</a>
 
 </center>
+
 {% endblock %}
