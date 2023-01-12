@@ -202,9 +202,11 @@ def submit_testing():
     selected_class = session["selected_class"]
 
     # Delete session
-    session.clear()
+    session.pop("selected_class", None)
+    session.pop("num_of_imgs", None)
 
-    return render_template("worker/feedback_fail.html", selected_class=selected_class)
+    return redirect(url_for('worker.feedback_fail', selected_class=selected_class))
+    # return render_template("worker/feedback_fail.html", selected_class=selected_class)
 
 
 # Define labeling page
@@ -329,8 +331,24 @@ def labeling_submit():
     )
 
     # Clear session
-    session.clear()
+    session.pop("selected_class", None)
+    session.pop("num_of_imgs", None)
+    session.pop("to_be_labeled_ids", None)
+    session.pop("label_start", None)
 
     # Redirect to feedback page
-    return render_template("worker/feedback_success.html", selected_class=selected_class, num_of_labeled=num_of_labeled)
+    return redirect(url_for("worker.feedback", selected_class=selected_class, num_of_labeled=num_of_labeled))
+    # return render_template("worker/feedback_success.html", selected_class=selected_class, num_of_labeled=num_of_labeled)
 
+
+# Feedback page
+@bp.route('/feedback', methods=('GET', 'POST'))
+@login_required
+def feedback(selected_class="", num_of_labeled=None):
+    # If num_of_labeled is not None, return success page
+    if num_of_labeled is not None:
+        return render_template("worker/feedback_success.html", selected_class=selected_class, num_of_labeled=num_of_labeled)
+    
+    # Else return fail page
+    else:
+        return render_template("worker/feedback_fail.html", selected_class=selected_class)

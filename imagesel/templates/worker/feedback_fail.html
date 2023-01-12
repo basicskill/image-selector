@@ -4,4 +4,9 @@
 {% block content %}
     <h2>Thank you for your participation!</h2>
     <h2>Sadly, you are not eligible to label images in class {{ selected_class }}</h2>
+    <br>
+    <br>
+    <center>
+        <a href="{{ url_for('worker.selection_choice') }}" class="btn btn-secondary">Back to class selection</a>
+    </center>
 {% endblock %}
