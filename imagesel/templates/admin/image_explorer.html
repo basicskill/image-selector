@@ -45,7 +45,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
 
 <h3>Add new class</h3>
 <form method="post" action="{{ url_for('admin.add_class') }}">
-    <input name="new_class" id="new_class" required>
+    <input class="form-control" name="new_class" id="new_class" required>
     <input type="submit" class="btn btn-primary" value="Add">
 </form>
 
@@ -61,14 +61,13 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
     <br>
     <label for="classificationselect">Choose class:</label>
     <select class="form-select" name="classification" id="classification">
-        <option value="{{ request.args.get('classification', 'all') }}" disabled selected>{{ request.args.get('classification', 'all') }}</option>
         <option value="all" {% if "all" == request.args.get('classification', 'all') %} selected {% endif %}>All</option>
         {% for classification in g.user['img_classes'] %}
         <option value="{{ classification }}" {% if classification == request.args.get('classification', 'all') %} selected {% endif %}>{{ classification }}</option>
         {% endfor %}
     </select>
     <br>
-    <input type="submit" class="btn btn-secondary" value="Refresh processed type">
+    <input type="submit" class="btn btn-secondary" value="Apply filters">
 </form>
 
 
@@ -94,6 +93,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
     {% endfor %}
 </table>
 <center>
+
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
                 page=curr_page - 1) }}" class="btn btn-secondary">&laquo; Previous</a>
     <label for="page_number">{{ curr_page }} / {{ g.pages }}</label>

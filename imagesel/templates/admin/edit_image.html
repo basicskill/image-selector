@@ -29,7 +29,6 @@
     
     <input type="submit" class="btn btn-primary" value="Submit">
 </form>
-<br>
 
 <form action="{{ url_for('admin.delete_image', id=image.id) }}" method="post">
     <input type="submit" class="btn btn-danger" value="Delete image" onclick="return confirm('Are you sure?');">

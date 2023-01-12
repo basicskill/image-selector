@@ -110,3 +110,19 @@ a:hover {
 .width-tiny {
   width: 100px;
 }
+
+.content textarea {
+  line-height: 0.85;
+  font-family: monospace;
+  font-size: initial;
+  height: 400px;
+  padding: 6px 4px;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
+}
