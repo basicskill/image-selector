@@ -3,21 +3,6 @@
 
 
 {% block content%}
-<!-- <h1>New image upload</h1>
-
-
-<input type="file" id="file_input"/>
-<p id="status">Please select a file</p>
-<img id="preview"/>
-
-
-<form method="POST" action="{{ url_for('admin.submit_form') }}">
-    <input type="hidden" id="avatar-url" name="avatar-url">
-    <input type="text" name="username" placeholder="Username">
-    <input type="text" name="full-name" placeholder="Full name">
-    <input type="submit" value="Update profile">
-</form> -->
-
 <h2>Upload new images</h2>
 <form action="{{ url_for('admin.upload_images') }}" method=post enctype=multipart/form-data>
   <input type="file" class="form-control" name="images" id="images" multiple accept="image/*">
@@ -116,65 +101,5 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
                 page=curr_page + 1) }}" class="btn btn-secondary">Next &raquo;</a>
 
 </center>
-<!-- <script>
-    (function() {
-        document.getElementById("file_input").onchange = function(){
-            var files = document.getElementById("file_input").files;
-            var file = files[0];
-            if(!file){
-                return alert("No file selected.");
-            }
-            getSignedRequest(file);
-        };
-    })();
-    // document.getElementById('file_input').addEventListener('change', () => {
-    //     var files = document.getElementById("file_input").files;
-    //     var file = files[0];
-    //     if(!file){
-    //         return alert("No file selected.");
-    //     }
-    //     getSignedRequest(file);
-    // });
-    function getSignedRequest(file){
-        var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/images/sign_s3?file_name="+file.name+"&file_type="+file.type);
-        xhr.onreadystatechange = function(){
-            if(xhr.readyState === 4){
-                if(xhr.status === 200){
-                    var response = JSON.parse(xhr.responseText);
-                    uploadFile(file, response.data, response.url);
-                }
-                else{
-                    console.log(file.name);
-                    alert("Could not get signed URL.");
-                }
-            }
-        };
-        xhr.send();
-    };
-
-    function uploadFile(file, s3Data, url){
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", s3Data.url);
-
-        var postData = new FormData();
-        for(key in s3Data.fields){
-            postData.append(key, s3Data.fields[key]);
-        }
-        postData.append('file', file);
-
-        xhr.onreadystatechange = function() {
-            if(xhr.readyState === 4){
-            if(xhr.status === 200 || xhr.status === 204){
-                document.getElementById("preview").src = url;
-            }
-            else{
-                alert("Could not upload file.");
-            }
-        }
-        };
-        xhr.send(postData);
-    }
-</script> -->
 
 {% endblock %}
