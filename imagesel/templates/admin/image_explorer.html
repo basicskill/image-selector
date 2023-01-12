@@ -55,7 +55,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
         <option value="{{ request.args.get('processing', 'all') }}" disabled selected>{{ request.args.get('processing', 'all')|capitalize }}</option>
         <option value="all">All</option>
         {% for class in config["STATES"] %}
-        <option value="{{ class }}" {% cif lass == request.args.get('processing', 'all') %} selected {% endif %}>{{ class|capitalize }}</option>
+        <option value="{{ class }}" {% if lass == request.args.get('processing', 'all') %} selected {% endif %}>{{ class|capitalize }}</option>
         {% endfor %}
     </select>
     <br>
