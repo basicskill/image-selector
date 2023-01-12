@@ -1,6 +1,6 @@
 html { font-family: sans-serif; background: #eee; padding: 1rem; }
 body { max-width: 960px; margin: 0 auto; background: white; }
-h1 { font-family: serif; color: #377ba8; margin: 1rem 0; }
+h1 { /*font-family: serif;*/ color: #377ba8; margin: 1rem 0; }
 a { color: #377ba8; }
 hr { border: none; border-top: 1px solid lightgray; }
 nav { background: lightgray; display: flex; align-items: center; padding: 0 0.5rem; }
@@ -31,7 +31,7 @@ input.danger { color: #cc2f2e; }
 }
 
 img {
-  width: 50%;
+  width: 90%;
   height: auto;
   vertical-align: middle;
   
@@ -94,7 +94,7 @@ a:hover {
   border-radius: 50%;
 }
 
-.border {
+.border_ {
   border-bottom: 1px solid lightgray; display: flex; align-items: flex-end;
 }
 
@@ -111,6 +111,10 @@ a:hover {
   width: 100px;
 }
 
+.width-image {
+  width: 550px;
+}
+
 .content textarea {
   line-height: 0.85;
   font-family: monospace;
@@ -125,4 +129,8 @@ html {
 
 body {
   min-height: 100%;
+}
+
+td input {
+  margin-bottom: 0px !important;
 }

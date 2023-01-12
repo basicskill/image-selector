@@ -25,7 +25,7 @@
                 <td><a href="{{ url_for('admin.user_page', worker_name=worker.username) }}">{{ worker.username }}</a></td>
                 <td>{{ worker.token }}</td>
                 <td>{{ worker.created }}</td>
-                <td><a href="{{ url_for('admin.user_page', worker_name=worker.username) }}">More details</a></td>
+                <td><a href="{{ url_for('admin.user_page', worker_name=worker.username) }}" class="btn btn-outline-secondary">More details</a></td>
             </tr>
         {% endfor %}
     </table>

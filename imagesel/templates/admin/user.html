@@ -4,7 +4,7 @@
 
 {% block content%}
     <h2></h2>
-    <h2 class="border">
+    <h2 class="border_">
         Worker: {{ worker.username }} <br>
         Token: {{ worker.token }}
     </h2>
@@ -16,7 +16,6 @@
             <th>Class</th>
             <th>Number of labeled images</th>
             <th>Time spent labeling</th>
-            <th>Delete</th>
         </tr>
         {% for class in worker_eligible %}
             <tr>
@@ -39,14 +38,13 @@
             <th>Class</th>
             <th>Time of ban</th>
             <th>Expiration of ban</th>
-            <th>Remove ban</th>
         </tr>
         {% for cls in banned_classes %}
             <tr>
                 <td>{{ cls.class }}</td>
                 <td>{{ cls.created }}</td>
                 <td>{{ cls.ban_expiration }}</td>
-                <td>
+                <td class="width-small">
                     <form action="{{ url_for('admin.delete_ban', worker_name=worker.username, class_name=cls.class) }}" method="post">
                         <input type="submit" class="btn btn-danger" value="Remove ban" onclick="return confirm('Are you sure?');">
                     </form>
