@@ -6,7 +6,7 @@
 <h2>Upload new images</h2>
 <form action="{{ url_for('admin.upload_images') }}" method=post enctype=multipart/form-data>
   <input type=file name=images id="images" multiple accept="image/*">
-    <select name="classification" id="classification">
+    <select class="form-select" name="classification" id="classification">
         <option value="unprocessed">unprocessed</option>
         {% for classification in g.classes %}
         <option value="{{ classification }}">{{ classification }}</option>
@@ -52,7 +52,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
 <h2>Uploaded images</h2>
 <label for="classificationselect">Choose processing type:</label>
 <form method=post enctype=select>
-    <select name="processing" id="processing">
+    <select class="form-select" name="processing" id="processing">
         <option value="{{ request.args.get('processing', 'all') }}" disabled selected>{{ request.args.get('processing', 'all') }}</option>
         <option value="all">all</option>
         {% for class in config["STATES"] %}
@@ -61,7 +61,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
     </select>
     <br>
     <label for="classificationselect">Choose class:</label>
-    <select name="classification" id="classification">
+    <select class="form-select" name="classification" id="classification">
         <option value="{{ request.args.get('classification', 'all') }}" disabled selected>{{ request.args.get('classification', 'all') }}</option>
         <option value="all">all</option>
         {% for classification in g.user['img_classes'] %}

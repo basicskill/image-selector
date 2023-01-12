@@ -12,14 +12,14 @@
 <center><img src="{{ url_for('images.img_data', filename=image['filename']) }}" alt="{{ image['filename'] }}"></center>
 
 <form method="post">
-    <input type="text" name="filename" value="{{ image['filename'] }}">
-    <select name="processing" id="processing">
+    <input type="text" class="form-control" name="filename" value="{{ image['filename'] }}">
+    <select class="form-select" name="processing" id="processing">
         <option value="" disabled selected>Current state: {{ image["processing"] }}</option>
         {% for class in config["STATES"] %}
         <option value="{{ class }}">Change to: {{ class }}</option>
         {% endfor %}
     </select>
-    <select name="classification" id="classification">
+    <select class="form-select" name="classification" id="classification">
         <option value="" disabled selected>Current classification: {{ image["classification"]}}</option>
         <option value="/">Change to: /</option>
         {% for classification in g.user["img_classes"] %}
