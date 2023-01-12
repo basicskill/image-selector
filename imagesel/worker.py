@@ -264,7 +264,7 @@ def labeling_submit():
     # Add label time to cumulative time spent column in worker's database
     # at index of selected class in eligible classes
     execute_query(
-        "UPDATE workers SET cumulative_time[%s] = cumulative_time[%s] + %s WHERE id = %s",
+        "UPDATE workers SET cumulative_time_spent[%s] = cumulative_time_spent[%s] + %s WHERE id = %s",
         (g.user["eligible_classes"].index(session["selected_class"]) + 1, g.user["eligible_classes"].index(session["selected_class"]) + 1, label_time, g.user["id"]),
         fetch=False
     ) 
