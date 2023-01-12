@@ -15,12 +15,14 @@
         <tr>
             <th>Class</th>
             <th>Number of labeled images</th>
+            <th>Time spent labeling</th>
             <th>Delete</th>
         </tr>
         {% for class in worker_eligible %}
             <tr>
                 <td>{{ class }}</td>
                 <td>{{ worker_eligible[class] }}</td>
+                <td>{{ label_time[class] }}</td>
                 <td>
                     <form action="{{ url_for('admin.delete_eligible_class', worker_name=worker.username, class_name=class) }}" method="post">
                         <input class="danger" type="submit" value="Remove eligibility" onclick="return confirm('Are you sure?');">

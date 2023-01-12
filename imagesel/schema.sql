@@ -20,7 +20,8 @@ CREATE TABLE workers (
   token TEXT UNIQUE NOT NULL,
   eligible_classes TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
   created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp),
-  num_labeled INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[]
+  num_labeled INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
+  cumulative_time_spent INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[]
 );
 
 -- Create a table for storing the images

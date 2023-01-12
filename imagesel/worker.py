@@ -169,19 +169,19 @@ def submit_testing():
             fetch=False
         )
 
+        # Update workers's cumulative_time_spent array in database
+        execute_query(
+            f"UPDATE workers SET cumulative_time_spent = array_append(cumulative_time_spent, 0) WHERE id = %s",
+            (g.user["id"],),
+            fetch=False
+        )
+
         # Update workers's num_labeled array in database
         execute_query(
             f"UPDATE workers SET num_labeled = array_append(num_labeled, 0) WHERE id = %s",
             (g.user["id"],),
             fetch=False
         )
-
-        # Log into activity table
-        execute_query(
-        f"INSERT INTO activity (worker_id, class, num_labeled) VALUES (%s, %s, %s)",
-        (g.user["id"], session["selected_class"], -1),
-        fetch=False
-    )
 
         # Clear selected image ids from session
         session.pop("selected_image_ids", None)
@@ -251,12 +251,23 @@ def labeling_submit():
     if not selected_image_ids:
         return render_template("worker/feedback_success.html", selected_class=session['selected_class'], num_of_labeled=0)
 
+    # Calculate time spent labeling
+    label_time = time.time() - session["label_start"]
+
     # Update num_labeled in worker's database at index of selected class in eligible classes
     execute_query(
         "UPDATE workers SET num_labeled[%s] = num_labeled[%s] + %s WHERE id = %s",
-        (g.user["eligible_classes"].index(session["selected_class"]) + 1, g.user["eligible_classes"].index(session["selected_class"]) + 1, len(selected_image_ids), g.user["id"]),
+        (g.user["eligible_classes"].index(session["selected_class"]) + 1, g.user["eligible_classes"].index(session["selected_class"]) + 1, session["num_of_imgs"], g.user["id"]),
         fetch=False
     )
+
+    # Add label time to cumulative time spent column in worker's database
+    # at index of selected class in eligible classes
+    execute_query(
+        "UPDATE workers SET cumulative_time[%s] = cumulative_time[%s] + %s WHERE id = %s",
+        (g.user["eligible_classes"].index(session["selected_class"]) + 1, g.user["eligible_classes"].index(session["selected_class"]) + 1, label_time, g.user["id"]),
+        fetch=False
+    ) 
 
     # Selected images with processing equal to unprocessed move to holding
     # set their classification to user's selected class and class count to 1
@@ -302,14 +313,12 @@ def labeling_submit():
     selected_class = session["selected_class"]
     num_of_labeled = len(selected_image_ids)
 
-    # Calculate time spent labeling
-    label_time = time.time() - session["label_start"]
 
     # Format label time to minutes:seconds
-    label_time = f"{int(label_time // 60)}:{int(label_time % 60)}"
+    label_time = f"{int(label_time // 60):02}:{int(label_time % 60):02}"
 
     # Log action
-    log_action(f"User {g.user['username']} labeled {len(session['num_of_imgs'])} images of witch {len(selected_image_ids)} are in class {session['selected_class']} in {label_time}",
+    log_action(f"User {g.user['username']} labeled {session['num_of_imgs']} images of witch {len(selected_image_ids)} are in class {session['selected_class']} in {label_time}",
                g.user["id"])
 
     # Log into activity table
