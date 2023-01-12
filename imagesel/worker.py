@@ -205,7 +205,7 @@ def submit_testing():
     session.pop("selected_class", None)
     session.pop("num_of_imgs", None)
 
-    return redirect(url_for('worker.feedback_fail', success=True, selected_class=selected_class))
+    return redirect(url_for('worker.feedback_fail', success=False, selected_class=selected_class))
 
 
 # Define labeling page
@@ -336,7 +336,7 @@ def labeling_submit():
     session.pop("label_start", None)
 
     # Redirect to feedback page
-    return redirect(url_for("worker.feedback", sucess=True, selected_class=selected_class, num_of_labeled=num_of_labeled))
+    return redirect(url_for("worker.feedback", success=True, selected_class=selected_class, num_of_labeled=num_of_labeled))
 
 
 # Feedback page
@@ -344,6 +344,7 @@ def labeling_submit():
 @login_required
 def feedback():
     success = request.args.get("success")
+    print(type(success))
     selected_class = request.args.get("selected_class")
     num_of_labeled = request.args.get("num_of_labeled")
 
