@@ -22,13 +22,12 @@
     <tr>
         <th>Class name</th>
         <th>Count</th>
-        <th>Delete class</th>
     </tr>
     {% for class in g.classes %}
         <tr>
             <td>{{ class }}</td>
             <td>{{ g.classes[class] }}</td>
-            <td>
+            <td class="width-small">
                 <form action="{{ url_for('admin.delete_classification', classification=class) }}" method="post">
                     <input type="submit" class="btn btn-danger" value="Delete" onclick="return confirm('Are you sure?');">
                 </form>
@@ -53,10 +52,10 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
 <label for="classificationselect">Choose processing type:</label>
 <form method=post enctype=select>
     <select class="form-select" name="processing" id="processing">
-        <option value="{{ request.args.get('processing', 'all') }}" disabled selected>{{ request.args.get('processing', 'all') }}</option>
-        <option value="all">all</option>
+        <option value="{{ request.args.get('processing', 'all') }}" disabled selected>{{ request.args.get('processing', 'all')|capitalize }}</option>
+        <option value="all">All</option>
         {% for class in config["STATES"] %}
-        <option value="{{ class }}">{{ class }}</option>
+        <option value="{{ class }}" {{ class == request.args.get('processing', 'all')|yesno:"selected" }}>{{ class|capitalize }}</option>
         {% endfor %}
     </select>
     <br>
