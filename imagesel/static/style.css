@@ -24,7 +24,7 @@ nav ul li a, nav ul li span, header .action { display: block; padding: 0.5rem; }
 .content textarea { min-height: 12em; resize: vertical; }
 input.danger { color: #cc2f2e; }
 
-input[type=submit] { min-width: 10em; }
+/*input[type=submit] { min-width: 10em; }*/
 .center {
     margin-left: auto;
     margin-right: auto;
@@ -101,4 +101,28 @@ a:hover {
 .labeling, .labeling th, .labeling td {
   border: 1px solid black;
   border-collapse: collapse;
+}
+
+.width-small {
+  width: 250px;
+}
+
+.width-tiny {
+  width: 100px;
+}
+
+.content textarea {
+  line-height: 0.85;
+  font-family: monospace;
+  font-size: initial;
+  height: 400px;
+  padding: 6px 4px;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  min-height: 100%;
 }

@@ -20,30 +20,30 @@
 
 <h2>Upload new images</h2>
 <form action="{{ url_for('admin.upload_images') }}" method=post enctype=multipart/form-data>
-  <input type=file name=images id="images" multiple accept="image/*">
-    <select name="classification" id="classification">
-        <option value="unprocessed">unprocessed</option>
+  <input type="file" class="form-control" name="images" id="images" multiple accept="image/*">
+  <label for="classification">Upload images as:</label>
+    <select class="form-select" name="classification" id="classification">
+        <option value="unprocessed">Unprocessed</option>
         {% for classification in g.classes %}
         <option value="{{ classification }}">{{ classification }}</option>
         {% endfor %}
     </select>
     <br>
-  <input type=submit value="Upload as class">
+  <input type="submit" class="btn btn-primary" value="Upload">
 </form>
 
-<h2>Labeled images</h2>
+<h2>Classes</h2>
 
 <table>
     <tr>
         <th>Class name</th>
         <th>Count</th>
-        <th>Delete class</th>
     </tr>
     {% for class in g.classes %}
         <tr>
             <td>{{ class }}</td>
             <td>{{ g.classes[class] }}</td>
-            <td>
+            <td class="width-small">
                 <form action="{{ url_for('admin.delete_classification', classification=class) }}" method="post">
                     <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
                 </form>
@@ -60,31 +60,29 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
 
 <h3>Add new class</h3>
 <form method="post" action="{{ url_for('admin.add_class') }}">
-    <input name="new_class" id="new_class" required>
-    <input type="submit" value="Add">
+    <input class="form-control" name="new_class" id="new_class" required>
+    <input type="submit" class="btn btn-primary" value="Add">
 </form>
 
 <h2>Uploaded images</h2>
 <label for="classificationselect">Choose processing type:</label>
 <form method=post enctype=select>
-    <select name="processing" id="processing">
-        <option value="{{ request.args.get('processing', 'all') }}" disabled selected>{{ request.args.get('processing', 'all') }}</option>
-        <option value="all">all</option>
+    <select class="form-select" name="processing" id="processing">
+        <option value="all" {% if "all" == request.args.get('processing', 'all') %} selected {% endif %}>All</option>
         {% for class in config["STATES"] %}
-        <option value="{{ class }}">{{ class }}</option>
+        <option value="{{ class }}" {% if class == request.args.get('processing', 'all') %} selected {% endif %}>{{ class|capitalize }}</option>
         {% endfor %}
     </select>
     <br>
     <label for="classificationselect">Choose class:</label>
-    <select name="classification" id="classification">
-        <option value="{{ request.args.get('classification', 'all') }}" disabled selected>{{ request.args.get('classification', 'all') }}</option>
-        <option value="all">all</option>
+    <select class="form-select" name="classification" id="classification">
+        <option value="all" {% if "all" == request.args.get('classification', 'all') %} selected {% endif %}>All</option>
         {% for classification in g.user['img_classes'] %}
-        <option value="{{ classification }}">{{ classification }}</option>
+        <option value="{{ classification }}" {% if classification == request.args.get('classification', 'all') %} selected {% endif %}>{{ classification }}</option>
         {% endfor %}
     </select>
     <br>
-    <input type=submit value="Refresh processed type">
+    <input type="submit" class="btn btn-secondary" value="Apply filters">
 </form>
 
 
@@ -110,11 +108,12 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
     {% endfor %}
 </table>
 <center>
+
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
-                page=curr_page - 1) }}" class="previous">&laquo; Previous</a>
+                page=curr_page - 1) }}" class="btn btn-secondary">&laquo; Previous</a>
     <label for="page_number">{{ curr_page }} / {{ g.pages }}</label>
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
-                page=curr_page + 1) }}" class="next">Next &raquo;</a>
+                page=curr_page + 1) }}" class="btn btn-secondary">Next &raquo;</a>
 
 </center>
 <!-- <script>
