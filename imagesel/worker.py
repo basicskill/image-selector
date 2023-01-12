@@ -205,7 +205,7 @@ def submit_testing():
     session.pop("selected_class", None)
     session.pop("num_of_imgs", None)
 
-    return redirect(url_for('worker.feedback_fail', selected_class=selected_class))
+    return redirect(url_for('worker.feedback_fail', success=True, selected_class=selected_class))
     # return render_template("worker/feedback_fail.html", selected_class=selected_class)
 
 
@@ -251,7 +251,7 @@ def labeling_submit():
 
     # Check if user selected anything
     if not selected_image_ids:
-        return render_template("worker/feedback_success.html", selected_class=session['selected_class'], num_of_labeled=0)
+        return render_template("worker/feedback_success.html", success=True, selected_class=session['selected_class'], num_of_labeled=0)
 
     # Calculate time spent labeling
     label_time = time.time() - session["label_start"]
@@ -344,11 +344,11 @@ def labeling_submit():
 # Feedback page
 @bp.route('/feedback', methods=('GET', 'POST'))
 @login_required
-def feedback(selected_class="", num_of_labeled=None):
-    # If num_of_labeled is not None, return success page
-    if num_of_labeled is not None:
-        return render_template("worker/feedback_success.html", selected_class=selected_class, num_of_labeled=num_of_labeled)
-    
-    # Else return fail page
-    else:
-        return render_template("worker/feedback_fail.html", selected_class=selected_class)
+def feedback():
+    success = request.args.get("success")
+    selected_class = request.args.get("selected_class")
+    num_of_labeled = request.args.get("num_of_labeled")
+
+    if success:
+        return render_template("worker/feedback_success.html", selected_class=selected_class, num_of_labeled=num_of_labeled)    
+    return render_template("worker/feedback_fail.html", selected_class=selected_class)
