@@ -64,7 +64,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
         <option value="{{ request.args.get('classification', 'all') }}" disabled selected>{{ request.args.get('classification', 'all') }}</option>
         <option value="all" {% if "all" == request.args.get('classification', 'all') %} selected {% endif %}>All</option>
         {% for classification in g.user['img_classes'] %}
-        <option value="{{ classification }}" {% if classification == request.args.get('classification', 'all') %}>{{ classification }}</option>
+        <option value="{{ classification }}" {% if classification == request.args.get('classification', 'all') %} selected {% endif %}>{{ classification }}</option>
         {% endfor %}
     </select>
     <br>
