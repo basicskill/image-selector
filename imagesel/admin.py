@@ -416,6 +416,7 @@ def user_page(worker_name):
     )[0]
 
     worker_eligible = {class_name: num_labeled for class_name, num_labeled in zip(worker['eligible_classes'], worker['num_labeled'])}
+    label_time = {class_name: f"{int(t//60):02}:{int(t%60):02}" for class_name, t in zip(worker['eligible_classes'], worker['cumulative_time_spent'])}
 
     # Select all banned classes for worker
     banned_classes = execute_query("SELECT * FROM banned WHERE worker_id = %s", (worker['id'],))
@@ -435,7 +436,8 @@ def user_page(worker_name):
     for txt in sorted(worker_logs, key=lambda x: x['created'], reverse=True):
         log_txt += f"{txt['created']} - {txt['textmsg']}\n\n"
  
-    return render_template("admin/user.html", worker=worker, worker_eligible=worker_eligible, banned_classes=banned_classes, log_txt=log_txt)
+    return render_template("admin/user.html", worker=worker, worker_eligible=worker_eligible,
+        banned_classes=banned_classes, log_txt=log_txt, label_time=label_time)
 
 
 # Delete user eligible class
@@ -456,6 +458,9 @@ def delete_eligible_class(worker_name, class_name):
 
     # Delete num_labeled for class
     worker['num_labeled'].pop(class_idx)
+
+    # Delete cumulative_time_spent for class
+    worker['cumulative_time_spent'].pop(class_idx)
 
     # Write to database
     execute_query("UPDATE workers SET eligible_classes = %s, num_labeled = %s WHERE username = %s",
