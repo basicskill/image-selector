@@ -30,7 +30,7 @@
             <td>{{ g.classes[class] }}</td>
             <td class="width-small">
                 <form action="{{ url_for('admin.delete_classification', classification=class) }}" method="post">
-                    <input class="danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
+                    <input class="btn btn-danger" type="submit" value="Delete" onclick="return confirm('Are you sure?');">
                 </form>
             </td>
         </tr>
