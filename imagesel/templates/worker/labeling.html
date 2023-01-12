@@ -8,7 +8,7 @@
   <h2>Label all images that belong in class {{ session['selected_class'] }}:</h2>
   
   <form action="/worker/labeling_submit" method="post">
-    <table>
+    <table class="labeling">
     <tr>
       <th>Image</th>
       <th>Selected</th>
@@ -21,7 +21,7 @@
     {% endfor %}
     </table>
     <br>
-    <input type="submit" value="Submit">
+    <input type="submit" class="btn btn-primary" value="Submit">
     
   </form>
 {% endblock %}

@@ -98,7 +98,7 @@ a:hover {
   border-bottom: 1px solid lightgray; display: flex; align-items: flex-end;
 }
 
-table, th, td {
+.labeling, .labeling th, .labeling td {
   border: 1px solid black;
   border-collapse: collapse;
 }
