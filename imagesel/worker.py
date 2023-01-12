@@ -57,18 +57,19 @@ def selection_choice():
     if request.method == 'POST':
         choice = request.form['choice']
         num_of_imgs = request.form['num_of_imgs']
-        print(f"Choice is {choice}")
-
-        # Set session attribute to selected class
-        session["selected_class"] = choice
-        session["num_of_imgs"] = num_of_imgs
 
         # Check if user has selected class in banned classes
         if choice not in banned_classes:
+
+            # Set session attribute to selected class
+            session["selected_class"] = choice
+            session["num_of_imgs"] = num_of_imgs
+
             # Log action
             log_action(f"User {g.user['username']} selected class {choice}", g.user["id"])
 
             return redirect(url_for('worker.testing'))
+
         else:
             flash("You are banned from labeling this class!")
 
