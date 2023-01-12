@@ -342,7 +342,7 @@ def labeling_submit():
 # Feedback page
 @bp.route('/feedback_success', methods=('GET', 'POST'))
 @login_required
-def feedback():
+def feedback_success():
     selected_class = request.args.get("selected_class")
     num_of_labeled = request.args.get("num_of_labeled")
     return render_template("worker/feedback_success.html", selected_class=selected_class, num_of_labeled=num_of_labeled)    
@@ -351,6 +351,6 @@ def feedback():
 # Feedback page
 @bp.route('/feedback_fail', methods=('GET', 'POST'))
 @login_required
-def feedback():
+def feedback_fail():
     selected_class = request.args.get("selected_class")
     return render_template("worker/feedback_fail.html", selected_class=selected_class)
