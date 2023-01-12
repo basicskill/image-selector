@@ -13,7 +13,7 @@
         {% endfor %}
     </select>
     <br>
-  <input type=submit value=Upload>
+  <input type=submit value="Upload as class">
 </form>
 
 <h2>Labeled images</h2>
@@ -97,7 +97,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
 <center>
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
                 page=curr_page - 1) }}" class="previous">&laquo; Previous</a>
-    <label for="page_number">{{ curr_page }}</label>
+    <label for="page_number">{{ curr_page }} / {{ g.pages }}</label>
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
                 page=curr_page + 1) }}" class="next">Next &raquo;</a>
 

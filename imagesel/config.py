@@ -23,7 +23,7 @@ UPLOAD_FOLDER = '/home/mladen/projekti/image-selector/images_db'
 LOG_DELETE_PERIOD = 7
 
 # Define number of days for deleting of bans
-BAN_DELETE_PERIOD = 2
+BAN_DELETE_PERIOD = 14
 
 # Define image states
 STATES = ['processed', 'unprocessed', 'holding']

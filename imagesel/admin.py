@@ -229,7 +229,10 @@ def image_explorer():
     if curr_page > g.pages:
         curr_page = g.pages
     if curr_page < 1:
-        curr_page = 1    
+        curr_page = 1
+    
+    if g.pages == 0:
+        curr_page = 0
 
     g.images = g.images[(curr_page - 1) * page_size: curr_page * page_size]
 

@@ -1,4 +1,4 @@
-import functools, sys, os
+import functools, sys, os, time
 from random import shuffle
 
 from flask import (
@@ -215,6 +215,11 @@ def labeling():
     if session.get("selected_class") not in g.user["eligible_classes"]:
         return redirect(url_for('worker.selection_choice'))
     
+    # Check if label start is in session
+    if "label_start" not in session:
+        # If not, set it to current time
+        session["label_start"] = time.time()
+    
     # Choose NUM_LABELING random images from database where processing is not equal to processed
     # Choose number of images to be labeled from session
     if "to_be_labeled_ids" not in session:
@@ -297,8 +302,14 @@ def labeling_submit():
     selected_class = session["selected_class"]
     num_of_labeled = len(selected_image_ids)
 
+    # Calculate time spent labeling
+    label_time = time.time() - session["label_start"]
+
+    # Format label time to minutes:seconds
+    label_time = f"{int(label_time // 60)}:{int(label_time % 60)}"
+
     # Log action
-    log_action(f"User {g.user['username']} labeled {len(session['num_of_imgs'])} images for class {session['selected_class']}",
+    log_action(f"User {g.user['username']} labeled {len(session['num_of_imgs'])} images of witch {len(selected_image_ids)} are in class {session['selected_class']} in {label_time}",
                g.user["id"])
 
     # Log into activity table
