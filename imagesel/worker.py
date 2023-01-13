@@ -332,12 +332,13 @@ def labeling_submit():
 
     # Clear session
     session.pop("selected_class", None)
+    num_of_imgs = session["num_of_imgs"]
     session.pop("num_of_imgs", None)
     session.pop("to_be_labeled_ids", None)
     session.pop("label_start", None)
 
     # Redirect to feedback page
-    return redirect(url_for("worker.feedback_success", success=True, selected_class=selected_class, num_of_labeled=num_of_labeled, num_total=session['num_of_imgs']))
+    return redirect(url_for("worker.feedback_success", success=True, selected_class=selected_class, num_of_labeled=num_of_labeled, num_total=num_of_imgs))
 
 
 # Feedback page
