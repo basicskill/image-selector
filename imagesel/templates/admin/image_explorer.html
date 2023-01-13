@@ -52,7 +52,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
 <h2>Uploaded images</h2>
 
 <form method=post enctype=select>
-    <label for="classificationselect">Status:</label>
+    <label for="processing">Status:</label>
     <select class="form-select" name="processing" id="processing">
         <option value="all" {% if "all" == request.args.get('processing', 'all') %} selected {% endif %}>All</option>
         {% for class in config["STATES"] %}
