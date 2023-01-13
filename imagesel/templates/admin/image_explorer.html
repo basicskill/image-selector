@@ -50,7 +50,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
 </form>
 
 <h2>Uploaded images</h2>
-<label for="classificationselect">Choose processing type:</label>
+<label for="classificationselect">Status:</label>
 <form method=post enctype=select>
     <select class="form-select" name="processing" id="processing">
         <option value="all" {% if "all" == request.args.get('processing', 'all') %} selected {% endif %}>All</option>
@@ -59,7 +59,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
         {% endfor %}
     </select>
     <br>
-    <label for="classificationselect">Choose class:</label>
+    <label for="classificationselect">Class:</label>
     <select class="form-select" name="classification" id="classification">
         <option value="all" {% if "all" == request.args.get('classification', 'all') %} selected {% endif %}>All</option>
         {% for classification in g.user['img_classes'] %}
