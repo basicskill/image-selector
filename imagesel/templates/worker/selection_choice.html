@@ -21,16 +21,16 @@
 </form>
 
 <h2>Classes in which you passed testing:</h2>
-<ul>
+<ul class="list-group">
   {% for class in eligible_classes %}
-    <li>{{ class }}</li>
+    <li class="list-group-item">{{ class }}</li>
   {% endfor %}
 </ul>
 
 <h2>Classes from which labeling you are banned:</h2>
-<ul>
+<ul class="list-group">
   {% for class in banned_classes %}
-    <li>{{ class }}</li>
+    <li class="list-group-item">{{ class }}</li>
   {% endfor %}
 </ul>
 
