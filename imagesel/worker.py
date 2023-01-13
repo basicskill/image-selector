@@ -251,7 +251,7 @@ def labeling_submit():
 
     # Check if user selected anything
     if not selected_image_ids:
-        return render_template("worker/feedback_success.html", success=True, selected_class=session['selected_class'], num_of_labeled=0)
+        return render_template("worker/feedback_success.html", success=True, selected_class=session['selected_class'], num_of_labeled=0, num_total=session['num_of_imgs'])
 
     # Calculate time spent labeling
     label_time = time.time() - session["label_start"]
@@ -320,7 +320,7 @@ def labeling_submit():
     label_time = f"{int(label_time // 60):02}:{int(label_time % 60):02}"
 
     # Log action
-    log_action(f"User {g.user['username']} labeled {session['num_of_imgs']} images of witch {len(selected_image_ids)} are in class {session['selected_class']} in {label_time}",
+    log_action(f"User {g.user['username']} labeled {session['num_of_imgs']} images of which {len(selected_image_ids)} are in class {session['selected_class']} in {label_time}",
                g.user["id"])
 
     # Log into activity table
@@ -337,7 +337,7 @@ def labeling_submit():
     session.pop("label_start", None)
 
     # Redirect to feedback page
-    return redirect(url_for("worker.feedback_success", success=True, selected_class=selected_class, num_of_labeled=num_of_labeled))
+    return redirect(url_for("worker.feedback_success", success=True, selected_class=selected_class, num_of_labeled=num_of_labeled, num_total=session['num_of_imgs']))
 
 
 # Feedback page
