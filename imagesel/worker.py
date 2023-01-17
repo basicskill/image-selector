@@ -119,6 +119,7 @@ def testing():
     )
 
     shuffle(selected_images)
+    print(selected_images)
 
     return render_template("worker/testing.html", selected_images=selected_images)
 
@@ -146,8 +147,6 @@ def submit_testing():
         "SELECT COUNT(*) FROM images WHERE id IN %s AND classification != %s AND processing = 'processed'",
         (tuple(selected_image_ids), session["selected_class"])
     )[0]["count"]
-
-    print(selected_correct, selected_wrong)
 
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
@@ -188,6 +187,8 @@ def submit_testing():
         # Clear selected image ids from session
         session.pop("selected_image_ids", None)
 
+        return redirect(url_for('worker.testing_passed'))
+
         return redirect(url_for('worker.labeling'))
 
     # Log action
@@ -208,6 +209,18 @@ def submit_testing():
     session.pop("num_of_imgs", None)
 
     return redirect(url_for('worker.feedback_fail', selected_class=selected_class))
+
+
+# Define testing passed feedback page
+@bp.route('/testing_passed', methods=('GET', 'POST'))
+@login_required
+def testing_passed():
+
+    # If method is POST, redirect to labeling page
+    if request.method == "POST":
+        return redirect(url_for('worker.labeling'))
+
+    return render_template("worker/testing_passed.html", selected_class=session["selected_class"])
 
 
 # Define labeling page
