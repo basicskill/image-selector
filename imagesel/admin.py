@@ -239,6 +239,17 @@ def image_explorer():
     return render_template("admin/image_explorer.html", processing=processing, classification=classification, curr_page=curr_page)
 
 
+# Method for deleting multiple images
+@bp.route('/delete_images', methods=('POST',))
+@admin_required
+def delete_images():
+
+    img_ids = request.form.keys()
+
+    for img_id in img_ids:
+        delete_image(img_id)
+
+
 # Decorator for adding class
 @bp.route('/add_class', methods=('POST',))
 @admin_required

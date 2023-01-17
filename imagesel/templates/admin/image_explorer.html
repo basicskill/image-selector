@@ -71,28 +71,34 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
     <input type="submit" class="btn btn-secondary" value="Apply filters">
 </form>
 
-
-<table class="center">
-    <tr>
-        <th>Image</th>
-        <th>Status</th>
-        <th>Class</th>
-        <th></th>
-    </tr>
-    {% for image in g.images %}
+<form action="/admin/delete_images" method="POST">
+<input type="submit" class="btn btn-primary" value="Delete selected images">
+    <table class="center">
         <tr>
-            <td class="width-image"><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
-                page=curr_page) }}">
-                <img src="{{ url_for('images.img_data', filename=image['filename']) }}"
-                 alt="{{ image['filename'] }}"></td>
-              </a>
-            <td>{{ image['processing'] }}</td>
-            <td>{{ image['classification'] }}</td>
-            <td><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
-                page=curr_page) }}" class="btn btn-outline-secondary">More details</a></td>
+            <th></th>
+            <th>Image</th>
+            <th>Status</th>
+            <th>Class</th>
+            <th></th>
         </tr>
-    {% endfor %}
-</table>
+        {% for image in g.images %}
+            <tr>
+                <td><input type="checkbox" name="images" value="{{ image['id'] }}"></td>
+                <td class="width-image"><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
+                    page=curr_page) }}">
+                    <img src="{{ url_for('images.img_data', filename=image['filename']) }}"
+                    alt="{{ image['filename'] }}"></td>
+                </a>
+                <td>{{ image['processing'] }}</td>
+                <td>{{ image['classification'] }}</td>
+                <td><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
+                    page=curr_page) }}" class="btn btn-outline-secondary">More details</a></td>
+            </tr>
+        {% endfor %}
+    </table>
+<input type="submit" class="btn btn-primary" value="Delete selected images">
+</form>
+
 <center>
 
     <a href="{{ url_for('admin.image_explorer', processing=request.args.get('processing'), classification=request.args.get('classification'),
