@@ -109,7 +109,7 @@ def testing():
         # Query NUM_HOLDING random images from database where processing is equal to unprocessed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE processing = 'unprocessed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-            (current_app.config["NUM_TEST_HOLDING"],)
+            (g.user["id"], current_app.config["NUM_TEST_HOLDING"],)
         )]
 
     # Query images with id from session selected_image_ids
