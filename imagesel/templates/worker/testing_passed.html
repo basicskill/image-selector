@@ -7,9 +7,7 @@
     <h2>You are now eligible to label images in class {{ selected_class }}</h2>
     <br>
     <br>
-    <!-- <center>
-        <a href="{{ url_for('worker.selection_choice') }}" class="btn btn-secondary">Continue to </a>
-    </center> -->
-
-    <button method="POST" class="btn btn-secondary">Continue to labeling</button>
+    <center>
+        <a href="{{ url_for('worker.labeling') }}" class="btn btn-secondary">Continue to labeling</a>
+    </center>
 {% endblock %}
