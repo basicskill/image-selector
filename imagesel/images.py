@@ -99,8 +99,10 @@ def upload_file(image, filename):
 # Delete file from S3
 def delete_file(filename):
     s3 = get_s3()
-    s3.delete_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=filename)
-
+    try:
+        s3.delete_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=filename)
+    except:
+        print(f"Amazon S3: File {filename} not found")
 
 # Delete all images from S3
 def delete_all_files():
