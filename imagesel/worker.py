@@ -265,6 +265,13 @@ def labeling_submit():
     # Calculate time spent labeling
     label_time = time.time() - session["label_start"]
 
+    # Append worker's id to workers column in images table for selected images
+    execute_query(
+        "UPDATE images SET labeled_by = array_append(labeled_by, %s) WHERE id = %s",
+        (g.user["id"], tuple(session["to_be_labeled_ids"])),
+        fetch=False
+    )
+
     # Check if user selected anything
     if not selected_image_ids:
         # Format label time to minutes:seconds
@@ -334,14 +341,6 @@ def labeling_submit():
         (tuple(selected_image_ids), current_app.config["NUM_VOTES"]),
         fetch=False
     )
-
-    # Append worker's id to workers column in images table for selected images
-    for image_id in selected_image_ids:
-        execute_query(
-            "UPDATE images SET labeled_by = array_append(labeled_by, %s) WHERE id = %s",
-            (g.user["id"], image_id),
-            fetch=False
-        )
 
     # Format label time to minutes:seconds
     label_time = f"{int(label_time // 60):02}:{int(label_time % 60):02}"
