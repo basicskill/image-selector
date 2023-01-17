@@ -266,11 +266,12 @@ def labeling_submit():
     label_time = time.time() - session["label_start"]
 
     # Append worker's id to workers column in images table for selected images
-    execute_query(
-        "UPDATE images SET labeled_by = array_append(labeled_by, %s) WHERE id = %s",
-        (g.user["id"], tuple(session["to_be_labeled_ids"])),
-        fetch=False
-    )
+    for img_id in session["to_be_labeled_ids"]:
+        execute_query(
+            "UPDATE images SET labeled_by = array_append(labeled_by, %s) WHERE id = %s",
+            (g.user["id"], img_id),
+            fetch=False
+        )
 
     # Check if user selected anything
     if not selected_image_ids:
