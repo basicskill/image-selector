@@ -263,6 +263,7 @@ def delete_images():
 
     return redirect(url_for('admin.image_explorer'))
 
+
 # Decorator for adding class
 @bp.route('/add_class', methods=('POST',))
 @admin_required
