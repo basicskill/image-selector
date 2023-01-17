@@ -247,8 +247,21 @@ def delete_images():
     img_ids = request.form.keys()
 
     for img_id in img_ids:
-        delete_image(img_id)
+         # Get image from database
+        image = execute_query(
+            "SELECT * FROM images WHERE id = %s", (img_id,)
+        )[0]
 
+        # Delete image from database
+        execute_query("DELETE FROM images WHERE id = %s", (img_id,), fetch=False)
+
+        # Delete image file
+        delete_file(image['filename'])
+
+        # Log action
+        log_action(f"Image {image['filename']} deleted")
+
+    return redirect(url_for('admin.image_explorer'))
 
 # Decorator for adding class
 @bp.route('/add_class', methods=('POST',))
