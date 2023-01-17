@@ -9,15 +9,17 @@
   
   <form action="/worker/labeling_submit" method="post">
     <table class="labeling">
-    <tr>
-      <th>Image</th>
-      <th>Selected</th>
-    </tr>
-    {% for image in selected_images %}
-    <tr>
-      <td><img src="{{ url_for('images.img_data', filename=image['filename']) }}" alt="Loading image.."></td>
-      <td><input type="checkbox" name="{{ image['id'] }}"></td>
-    </tr>
+      <tr>
+        <th>Image</th>
+        <th>Image name</th>
+        <th>Selected</th>
+      </tr>
+      {% for image in selected_images %}
+      <tr>
+        <td><img src="{{ url_for('images.img_data', filename=image['filename']) }}" alt="{{ image['filename'] }}"></td>
+        <td>{{ image['filename'] }}</td>
+        <td><input type="checkbox" name="{{ image['id'] }}"></td>
+      </tr>
     {% endfor %}
     </table>
     <br>
