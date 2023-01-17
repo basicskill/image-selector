@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block content %}
-<h2>Choose your class for classifying images</h2>
+<h2>Labeling</h2>
 <form method=post enctype=select>
   <label for="classificationselect">Choose class:</label>
   <select class="form-select" name="choice" id="choice">
@@ -15,22 +15,22 @@
     {% endfor %}
   </select>
   <br>
-  <label for="num_of_imgs">Choose number of images to label</label>
+  <label for="num_of_imgs">Number of images to label:</label>
   <input type="number" class="form-control" name="num_of_imgs" id="num_of_imgs" min="5" max="20" value="10" required>
-  <input type="submit" class="btn btn-primary" value="Choose">
+  <input type="submit" class="btn btn-primary" value="Start labeling">
 </form>
 
 <h2>Classes in which you passed testing:</h2>
-<ul>
+<ul class="list-group">
   {% for class in eligible_classes %}
-    <li>{{ class }}</li>
+    <li class="list-group-item">{{ class }}</li>
   {% endfor %}
 </ul>
 
 <h2>Classes from which labeling you are banned:</h2>
-<ul>
+<ul class="list-group">
   {% for class in banned_classes %}
-    <li>{{ class }}</li>
+    <li class="list-group-item">{{ class }}</li>
   {% endfor %}
 </ul>
 
