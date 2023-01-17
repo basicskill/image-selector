@@ -95,20 +95,20 @@ def testing():
         # Query NUM_CORRECT random images from database where classification is equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] = [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE classification = %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
+            "SELECT id FROM images WHERE classification = %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
             (session.get("selected_class"), current_app.config["NUM_TEST_CORRECT"],)
         )]
 
         # Query NUM_INCORRECT random images with classification not equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE classification != %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
+            "SELECT id FROM images WHERE classification != %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
             (session.get("selected_class"), current_app.config["NUM_TEST_INCORRECT"],)
         )]
 
         # Query NUM_HOLDING random images from database where processing is equal to unprocessed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE processing = 'unprocessed' ORDER BY RANDOM() LIMIT %s",
+            "SELECT id FROM images WHERE processing = 'unprocessed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
             (current_app.config["NUM_TEST_HOLDING"],)
         )]
 
@@ -157,9 +157,10 @@ def submit_testing():
 
         # Change selected images which are unprocessed to holding,
         # change their class count to 1 and their classification to user's selected class
+        # And append user's id to their labeled_by
         execute_query(
-            f"UPDATE images SET processing = 'holding', class_count = 1, classification = %s WHERE id IN %s AND processing = 'unprocessed'",
-            (session["selected_class"], tuple(selected_image_ids)),
+            f"UPDATE images SET processing = 'holding', class_count = 1, classification = %s, labeled_by = array_append(labeled_by, %s) WHERE id IN %s AND processing = 'unprocessed'",
+            (session["selected_class"], g.user["id"], tuple(selected_image_ids)),
             fetch=False
         )
 
@@ -222,11 +223,13 @@ def labeling():
         # If not, set it to current time
         session["label_start"] = time.time()
     
-    # Choose NUM_LABELING random images from database where processing is not equal to processed
     # Choose number of images to be labeled from session
+    # Choose num_of_imgs random images from database where processing is not equal to processed
+    # and append their ids to session to_be_labeled_ids
+    # If image has users id in labeled_by, skip it
     if "to_be_labeled_ids" not in session:
         session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
-            "SELECT * FROM images WHERE processing != 'processed' ORDER BY RANDOM() LIMIT %s",
+            "SELECT * FROM images WHERE processing != 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
             (session["num_of_imgs"],)
         )]
 
@@ -310,6 +313,14 @@ def labeling_submit():
         (tuple(selected_image_ids), current_app.config["NUM_VOTES"]),
         fetch=False
     )
+
+    # Append worker's id to workers column in images table for selected images
+    for image_id in selected_image_ids:
+        execute_query(
+            "UPDATE images SET labeled_by = array_append(labeled_by, %s) WHERE id = %s",
+            (g.user["id"], image_id),
+            fetch=False
+        )
 
     # Save selected class
     selected_class = session["selected_class"]

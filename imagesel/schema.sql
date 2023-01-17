@@ -33,6 +33,7 @@ CREATE TABLE images (
   created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp),
   processing TEXT NOT NULL DEFAULT 'unprocessed',
   class_count INTEGER NOT NULL DEFAULT 0,
+  labeled_by INTEGER[] NOT NULL DEFAULT ARRAY[]::INTEGER[],
   classification TEXT NOT NULL DEFAULT '/'
 );
 
