@@ -119,7 +119,6 @@ def testing():
     )
 
     shuffle(selected_images)
-    print(selected_images)
 
     return render_template("worker/testing.html", selected_images=selected_images)
 
@@ -189,8 +188,6 @@ def submit_testing():
 
         return redirect(url_for('worker.testing_passed'))
 
-        return redirect(url_for('worker.labeling'))
-
     # Log action
     log_action(f"User {g.user['token']} failed testing for class {session['selected_class']} and is banned", g.user["id"])
 
@@ -215,11 +212,6 @@ def submit_testing():
 @bp.route('/testing_passed', methods=('GET', 'POST'))
 @login_required
 def testing_passed():
-
-    # If method is POST, redirect to labeling page
-    if request.method == "POST":
-        return redirect(url_for('worker.labeling'))
-
     return render_template("worker/testing_passed.html", selected_class=session["selected_class"])
 
 
