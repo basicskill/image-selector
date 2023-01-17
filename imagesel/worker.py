@@ -96,14 +96,14 @@ def testing():
         # and processing is equal to processed
         session["selected_image_ids"] = [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE classification = %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-            (session.get("selected_class"), current_app.config["NUM_TEST_CORRECT"],)
+            (session.get("selected_class"), g.user["id"], current_app.config["NUM_TEST_CORRECT"],)
         )]
 
         # Query NUM_INCORRECT random images with classification not equal to user's selected class
         # and processing is equal to processed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
             "SELECT id FROM images WHERE classification != %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-            (session.get("selected_class"), current_app.config["NUM_TEST_INCORRECT"],)
+            (session.get("selected_class"), g.user["id"], current_app.config["NUM_TEST_INCORRECT"],)
         )]
 
         # Query NUM_HOLDING random images from database where processing is equal to unprocessed
@@ -230,7 +230,7 @@ def labeling():
     if "to_be_labeled_ids" not in session:
         session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
             "SELECT * FROM images WHERE processing != 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-            (session["num_of_imgs"],)
+            (g.user["id"], session["num_of_imgs"],)
         )]
 
     # Query images from database with id from session selected_image_ids and apply base64 encoding
