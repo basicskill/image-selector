@@ -83,7 +83,7 @@ Number of images in <b>{{ class }}</b> folder is <b>{{ g.unprocessed_classes[cla
         </tr>
         {% for image in g.images %}
             <tr>
-                <td><input type="checkbox" name="images" value="{{ image['id'] }}"></td>
+                <td><input type="checkbox" name="{{ image['id'] }}"></td>
                 <td class="width-image"><a href="{{ url_for('admin.edit_image', id=image['id'], processing=request.args.get('processing'), classification=request.args.get('classification'),
                     page=curr_page) }}">
                     <img src="{{ url_for('images.img_data', filename=image['filename']) }}"
