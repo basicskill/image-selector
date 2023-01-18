@@ -108,7 +108,7 @@ def testing():
 
         # Query NUM_HOLDING random images from database where processing is equal to unprocessed
         session["selected_image_ids"] += [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE processing = 'unprocessed' AND NOT %s = ANY(labeled_by) AND classification = ANY(%s) ORDER BY RANDOM() LIMIT %s",
+            "SELECT id FROM images WHERE processing = 'unprocessed' AND NOT %s = ANY(labeled_by) AND classification = %s ORDER BY RANDOM() LIMIT %s",
             (g.user["id"], (session.get("selected_class"), "/"), current_app.config["NUM_TEST_HOLDING"],)
         )]
 
@@ -234,7 +234,7 @@ def labeling():
     # If image has users id in labeled_by, skip it
     if "to_be_labeled_ids" not in session:
         session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
-            "SELECT * FROM images WHERE processing != 'processed' AND NOT %s = ANY(labeled_by) AND classification = ANY(%s) ORDER BY RANDOM() LIMIT %s",
+            "SELECT * FROM images WHERE processing != 'processed' AND NOT %s = ANY(labeled_by) AND classification = %s ORDER BY RANDOM() LIMIT %s",
             (g.user["id"], (session.get("selected_class"), "/"), session["num_of_imgs"],)
         )]
 
