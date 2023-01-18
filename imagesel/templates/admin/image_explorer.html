@@ -7,8 +7,11 @@
 <form action="{{ url_for('admin.upload_images') }}" method=post enctype=multipart/form-data>
   <input type="file" class="form-control" name="images" id="images" multiple accept="image/*">
   <label for="classification">Upload images as:</label>
-    <select class="form-select" name="classification" id="classification">
+    <select name="processing" id="processing">
         <option value="unprocessed">Unprocessed</option>
+        <option value="processed">Processed</option>
+    </select>
+    <select class="form-select" name="classification" id="classification">
         {% for classification in g.classes %}
         <option value="{{ classification }}">{{ classification }}</option>
         {% endfor %}

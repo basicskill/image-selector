@@ -114,6 +114,7 @@ def upload_images():
         # Get all images from request
         images = request.files.getlist("images")
         classification = request.form['classification']
+        processing = request.form['processing']
 
         num_uploaded = 0
         # Loop through all images
@@ -123,25 +124,18 @@ def upload_images():
                 # Check if mimetype is image
                 if image.mimetype.startswith('image/'):
 
+                    # Save image to S3
                     filename = upload_file(image, image.filename)
 
                     # Save image metadata to database
-                    if classification == 'unprocessed':
-                        execute_query("INSERT INTO images (filename, processing) VALUES (%s, %s)",
-                            (filename, classification),
-                            fetch=False
-                        )
-                    else:
-                        execute_query("INSERT INTO images (filename, processing, classification) VALUES (%s, %s, %s)",
-                            (filename, 'processed', classification),
-                            fetch=False
-                        )
-
+                    execute_query("INSERT INTO images (filename, processing, classification) VALUES (%s, %s, %s)",
+                        (filename, processing, classification),
+                        fetch=False
+                    )
 
                     # Log action
-                    log_action(f"Image {filename} uploaded as class {classification}") 
+                    log_action(f"Image {filename} uploaded as class {processing}/{classification}") 
                     num_uploaded += 1
-
 
                 else:
                     flash(f'File "{image.filename}" is not an image.')
