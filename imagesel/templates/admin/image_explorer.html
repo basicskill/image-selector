@@ -12,7 +12,7 @@
         <option value="processed">Processed</option>
     </select>
     <select class="form-select" name="classification" id="classification">
-        <option value="unprocessed">/</option>
+        <option value="/">/</option>
         {% for classification in g.classes %}
         <option value="{{ classification }}">{{ classification }}</option>
         {% endfor %}
