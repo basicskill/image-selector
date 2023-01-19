@@ -43,6 +43,15 @@ def login():
 
     return render_template('auth/login.html')
 
+@bp.route('/admin_login_page', methods=('GET',))
+def admin_login_page():
+    # Check if user is already logged in
+    if g.user:
+        return redirect(url_for('index'))
+
+    return render_template('auth/login_admin.html')
+
+
 # Decorator for worker login
 @bp.route('/worker_login', methods=('POST',))
 def worker_login():
@@ -101,7 +110,7 @@ def admin_login():
 
     flash(error)
 
-    return render_template('auth/login.html')
+    return redirect(url_for('auth.admin_login_page'))
 
 
 # Decorator for logout

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block header %}
+{% endblock %}
+<h1>{% block title %}Admin login{% endblock %}</h1>
+
+{% block content %}
+  <br>
+  <h2>Admin login</h2>
+  <form action="{{ url_for('auth.admin_login') }}" method="post">
+    <label for="username">Username</label>
+    <input class="form-control" name="username" id="username" required>
+    <label for="password">Password</label>
+    <input type="password" class="form-control" name="password" id="password">
+    <input type="submit" class="btn btn-primary" value="Log in">
+  </form>
+  <br>
+  <a class="btn btn-secondary" href="{{ url_for('auth.login') }}">Go to Worker login page</a>
+{% endblock %}
