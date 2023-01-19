@@ -189,7 +189,7 @@ def submit_testing():
         return redirect(url_for('worker.testing_passed'))
 
     # Log action
-    log_action(f"User {g.user['token']} failed testing for class {session['selected_class']} and is banned", g.user["id"])
+    log_action(f"User {g.user['username']} failed testing for class {session['selected_class']} and is banned", g.user["id"])
 
     # Add selected class to banned table for worker
     execute_query(
