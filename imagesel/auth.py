@@ -43,7 +43,7 @@ def login():
 
     return render_template('auth/login.html')
 
-@bp.route('/admin_login_page', methods=('GET',))
+@bp.route('/admin', methods=('GET',))
 def admin_login_page():
     # Check if user is already logged in
     if g.user:
