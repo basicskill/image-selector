@@ -16,6 +16,7 @@ bp = Blueprint('images', __name__, url_prefix='/images')
 # Before all requests run blueprint
 @bp.before_app_request
 def load_logged_in_user():
+    """If a user id is stored in the session, load the user object from."""
     user_id = session.get('user_id')
     is_admin = session.get('is_admin')
 
@@ -40,7 +41,7 @@ def load_logged_in_user():
 
 # Get S3 connection
 def get_s3():
-
+    """Get S3 connection from global variable or create new one."""
     if 's3' not in g:
         g.s3 = boto3.client(
             "s3",
@@ -53,18 +54,21 @@ def get_s3():
 
 # Close S3 connection
 def close_s3(error):
+    """Close S3 connection."""
     if hasattr(g, 's3'):
         g.s3.close()
 
 
 # Define init_app
 def init_app(app):
+    """Register database functions with the Flask app. This is called by the application factory."""
     app.teardown_appcontext(close_s3)
     app.cli.add_command(clear_db_command)
 
 
 # Get image object from S3
 def get_object(image_name):
+    """Get image object from S3."""
     s3 = get_s3()
     obj = s3.get_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=image_name)
 
@@ -73,6 +77,7 @@ def get_object(image_name):
 
 # Upload image to S3
 def upload_file(image, filename):
+    """Upload image to S3."""
     s3 = get_s3()
 
     bucket = os.environ["AWS_BUCKET_NAME"]
@@ -98,6 +103,7 @@ def upload_file(image, filename):
 
 # Delete file from S3
 def delete_file(filename):
+    """Delete file from S3."""
     s3 = get_s3()
     try:
         s3.delete_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=filename)
@@ -106,6 +112,7 @@ def delete_file(filename):
 
 # Delete all images from S3
 def delete_all_files():
+    """Delete all images from S3."""""
     s3 = get_s3()
     bucket = os.environ["AWS_BUCKET_NAME"]
 
@@ -125,6 +132,7 @@ def clear_db_command():
 
 # Rename file in S3
 def rename_file(old_filename, new_filename):
+    """Rename file in S3."""
     s3 = get_s3()
     s3.copy_object(
         Bucket=os.environ["AWS_BUCKET_NAME"],
@@ -140,34 +148,9 @@ def rename_file(old_filename, new_filename):
 # Add images to route
 @bp.route(f'/img_data/<filename>')
 def img_data(filename):
+    """Get image data from S3 and return it as a response."""
     # Get image object from S3
     img = get_object(filename)
     resp = make_response(img['Body'].read())
     resp.cache_control.max_age = 3600
     return resp
-
-# @bp.route('/sign_s3/')
-# def sign_s3():
-#     print("S3")
-#     S3_BUCKET = os.environ.get('AWS_BUCKET_NAME')
-
-#     file_name = request.args.get('file_name')
-#     file_type = request.args.get('file_type')
-
-#     s3 = get_s3()
-
-#     presigned_post = s3.generate_presigned_post(
-#     Bucket = S3_BUCKET,
-#     Key = file_name,
-#     Fields = {"acl": "public-read", "Content-Type": file_type},
-#         Conditions = [
-#             {"acl": "public-read"},
-#             {"Content-Type": file_type}
-#         ],
-#         ExpiresIn = 3600
-#     )
-
-#     return json.dumps({
-#         'data': presigned_post,
-#         'url': 'https://%s.s3.amazonaws.com/%s' % (S3_BUCKET, file_name)
-#     })

@@ -12,6 +12,7 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 # Before all requests run blueprint
 @bp.before_app_request
 def load_logged_in_user():
+    """If a user id is stored in the session, load the user object from."""
     user_id = session.get('user_id')
     is_admin = session.get('is_admin')
 
@@ -36,7 +37,7 @@ def load_logged_in_user():
 
 @bp.route('/login', methods=('GET',))
 def login():
-
+    """Show login page."""
     # Check if user is already logged in
     if g.user:
         return redirect(url_for('index'))
@@ -45,6 +46,7 @@ def login():
 
 @bp.route('/admin', methods=('GET',))
 def admin_login_page():
+    """Show admin login page."""
     # Check if user is already logged in
     if g.user:
         return redirect(url_for('index'))
@@ -55,6 +57,7 @@ def admin_login_page():
 # Decorator for worker login
 @bp.route('/worker_login', methods=('POST',))
 def worker_login():
+    """Log in a registered user by adding the user id to the session."""
     if request.method == 'POST':
         token = request.form['token'].strip()
         error = None
@@ -84,6 +87,7 @@ def worker_login():
 # Decorator for admin login
 @bp.route('/admin_login', methods=('POST',))
 def admin_login():
+    """Log in a registered user by adding the user id to the session."""
     username = request.form['username'].strip()
     password = request.form['password'].strip()
     error = None
@@ -116,12 +120,14 @@ def admin_login():
 # Decorator for logout
 @bp.route('/logout')
 def logout():
+    """Clear the current session, including the stored user id."""
     session.clear()
     return redirect(url_for('index'))
 
 
 # Decorator for login required
 def login_required(view):
+    """View decorator that redirects anonymous users to the login page."""
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None:
@@ -133,6 +139,7 @@ def login_required(view):
 
 # Decorator for admin login required
 def admin_required(view):
+    """View decorator that redirects anonymous users to the login page."""
     @functools.wraps(view)
     def wrapped_view(**kwargs):
         if g.user is None or session.get('is_admin') is None or not session.get('is_admin'):

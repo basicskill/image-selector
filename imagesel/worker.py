@@ -16,6 +16,7 @@ bp = Blueprint('worker', __name__, url_prefix='/worker')
 # Before all requests run blueprint
 @bp.before_app_request
 def load_logged_in_user():
+    """If a user id is stored in the session, load the user object from."""
     user_id = session.get('user_id')
     is_admin = session.get('is_admin')
 
@@ -42,7 +43,7 @@ def load_logged_in_user():
 @bp.route('/selection_choice', methods=('GET', 'POST'))
 @login_required
 def selection_choice():
-
+    """Show selection choice page. User selects class and number of images to label."""
     # If user is not in selection choice status, redirect to testing page
     if session.get("selected_class"):
         return redirect(url_for('worker.testing'))
@@ -83,6 +84,7 @@ def selection_choice():
 @bp.route('/testing', methods=('GET', 'POST'))
 @login_required
 def testing():
+    """Show testing page. User labels images and is redirected to labeling page if correct."""
     # If user is not in testing status, redirect to selection choice page
     if not session.get("selected_class"):
         return redirect(url_for('worker.selection_choice'))
@@ -127,6 +129,7 @@ def testing():
 @bp.route('/submit_testing', methods=('POST',))
 @login_required
 def submit_testing():
+    """Submit selected images from testing page."""
     # Get selected image id from request
     selected_image_ids = request.form.keys()
 
@@ -212,6 +215,7 @@ def submit_testing():
 @bp.route('/testing_passed', methods=('GET', 'POST'))
 @login_required
 def testing_passed():
+    """Testing passed feedback page."""
     return render_template("worker/testing_passed.html", selected_class=session["selected_class"])
 
 
@@ -219,6 +223,7 @@ def testing_passed():
 @bp.route('/labeling', methods=('GET', 'POST'))
 @login_required
 def labeling():
+    """Show images to be labeled and submit them."""
     # Check if user is eligible for selected class
     if session.get("selected_class") not in g.user["eligible_classes"]:
         return redirect(url_for('worker.selection_choice'))
@@ -371,6 +376,7 @@ def labeling_submit():
 @bp.route('/feedback_success', methods=('GET', 'POST'))
 @login_required
 def feedback_success():
+    """Feedback page after labeling images."""
     selected_class = request.args.get("selected_class")
     num_of_labeled = request.args.get("num_of_labeled")
     num_total = request.args.get("num_total")
@@ -381,5 +387,6 @@ def feedback_success():
 @bp.route('/feedback_fail', methods=('GET', 'POST'))
 @login_required
 def feedback_fail():
+    """Feedback page after failing at testing phase."""
     selected_class = request.args.get("selected_class")
     return render_template("worker/feedback_fail.html", selected_class=selected_class)

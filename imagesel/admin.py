@@ -23,6 +23,7 @@ bp = Blueprint('admin', __name__, url_prefix='/admin')
 # Before all requests run blueprint
 @bp.before_app_request
 def load_logged_in_user():
+    """If a user id is stored in the session, load the user object from."""
     user_id = session.get('user_id')
     is_admin = session.get('is_admin')
 
@@ -43,6 +44,7 @@ def load_logged_in_user():
 @bp.route('/dashboard', methods=('GET', 'POST'))
 @admin_required
 def dashboard():
+    """Admin dashboard page for managing users."""
     # Get all workers from workers table
     g.workers = execute_query(
         "SELECT * FROM workers"
@@ -74,6 +76,7 @@ def dashboard():
 @bp.route('/<int:id>/delete', methods=('POST',))
 @admin_required
 def delete(id):
+    """Delete a user from the database with post request."""
     # Get token from database
     worker = execute_query('SELECT * FROM workers WHERE id = %s', (id,))
 
@@ -90,6 +93,7 @@ def delete(id):
 @bp.route('/<classification>/delete_classification', methods=('POST',))
 @admin_required
 def delete_classification(classification):
+    """Delete a classification type from the database with post request."""
     # Fetch classification from admins table
     img_classes = execute_query('SELECT img_classes FROM admins')[0]['img_classes']
 
@@ -109,7 +113,7 @@ def delete_classification(classification):
 @bp.route('/upload_images', methods=('GET', 'POST'))
 @admin_required
 def upload_images():
-
+    """Upload images to S3 bucket and register it in POSTGRES database."""
     if request.method == 'POST':
         # Get all images from request
         images = request.files.getlist("images")
@@ -149,7 +153,7 @@ def upload_images():
 @bp.route('/image_explorer', methods=('GET', 'POST'))
 @admin_required
 def image_explorer():
-
+    """Image explorer page for viewing and managing images."""
     if request.method == 'POST':
 
         # Get choice field from request
@@ -237,7 +241,7 @@ def image_explorer():
 @bp.route('/delete_images', methods=('POST',))
 @admin_required
 def delete_images():
-
+    """Delete multiple images from S3 bucket and database."""
     img_ids = request.form.keys()
 
     for img_id in img_ids:
@@ -262,6 +266,7 @@ def delete_images():
 @bp.route('/add_class', methods=('POST',))
 @admin_required
 def add_class():
+    """Add new class to img_classes field in admins table."""
     # Get img_classes field from admins table
     classes = execute_query(
         "SELECT img_classes FROM admins"
@@ -291,6 +296,7 @@ def add_class():
 @bp.route('/<int:id>/edit_image', methods=('GET', 'POST'))
 @admin_required
 def edit_image(id):
+    """Edit image in database and rename image file."""
     # Get image from database
     image = execute_query(
         "SELECT * FROM images WHERE id = %s", (id,)
@@ -322,6 +328,7 @@ def edit_image(id):
 @bp.route('/<int:id>/delete_image', methods=('POST',))
 @admin_required
 def delete_image(id):
+    """Delete image from S3 bucket and database."""
     # Get image from database
     image = execute_query(
         "SELECT * FROM images WHERE id = %s", (id,)
@@ -381,7 +388,7 @@ def change_password():
 @bp.route('/download_data', methods=('GET', 'POST'))
 @admin_required
 def download_data():
-
+    """Download database as zip file from S3."""
     if request.method == 'POST':
         # Init zip file 
         mem = io.BytesIO()
@@ -429,6 +436,7 @@ def download_data():
 @bp.route('/user_page/<worker_name>', methods=('GET', 'POST'))
 @admin_required
 def user_page(worker_name):
+    """Display user page with user information and banned classes."""
     # Get user from database
     worker = execute_query(
         "SELECT * FROM workers WHERE username = %s", (worker_name,)
@@ -463,6 +471,7 @@ def user_page(worker_name):
 @bp.route('/user_page/<worker_name>/delete_eligible_class/<class_name>', methods=('POST',))
 @admin_required
 def delete_eligible_class(worker_name, class_name):
+    """Delete eligible class for user."""
     # Get user from database
     worker = execute_query(
         "SELECT * FROM workers WHERE username = %s", (worker_name,)
@@ -496,6 +505,7 @@ def delete_eligible_class(worker_name, class_name):
 @bp.route('/user_page/<worker_name>/delete_ban/<class_name>', methods=('POST',))
 @admin_required
 def delete_ban(worker_name, class_name):
+    """Delete ban for user."""
     # Get user from database
     worker = execute_query(
         "SELECT * FROM workers WHERE username = %s", (worker_name,)
@@ -512,11 +522,3 @@ def delete_ban(worker_name, class_name):
 
     # Return to user page
     return redirect(url_for('admin.user_page', worker_name=worker_name))
-
-
-# # Create submit_form page
-# @bp.route('/submit_form', methods=('GET', 'POST'))
-# @admin_required
-# def submit_form():
-#     print("Submit form")
-#     return redirect(url_for('admin.image_explorer'))

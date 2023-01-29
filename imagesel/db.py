@@ -10,35 +10,35 @@ from werkzeug.security import generate_password_hash
 
 
 def get_db():
+    """Connect to the application's configured database."""
     if 'db' not in g:
-        
-        # Check if DATABASE_URL is set
-        if 'DATABASE_URL' not in os.environ:
-            g.db = psycopg2.connect(user="mladen",
-                                password="password",
-                                host="localhost",
-                                port="5432",
-                                database="testdb")
-        else:
-            DATABASE_URL = os.environ['DATABASE_URL']
-            g.db = psycopg2.connect(DATABASE_URL, sslmode='require')
+        # Get database url from environment variable
+        DATABASE_URL = os.environ['DATABASE_URL']
+
+        # Connect to database
+        g.db = psycopg2.connect(DATABASE_URL, sslmode='require')
 
     return g.db
 
 
 def close_db(e=None):
+    """If this request connected to the database, close the connection."""
     db = g.pop('db', None)
 
     if db is not None:
         db.close()
 
 def init_db():
+    """Clear existing data and create new tables."""
+    # Get database
     db = get_db()
     cur = db.cursor()
 
+    # Execute schema.sql
     with current_app.open_resource('schema.sql') as f:
         cur.execute(f.read().decode('utf8'))
     
+    # Commit init script
     db.commit()
     cur.close()
     close_db()
@@ -52,12 +52,14 @@ def init_db_command():
 
 
 def init_app(app):
+    """Register database functions with the Flask app. This is called by the application factory."""
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
 
 
 # Add new user to database
 def add_worker(username):
+    """Add new worker to database and return access token."""
     db = get_db()
     cur = db.cursor()
 
@@ -77,6 +79,7 @@ def add_worker(username):
     return acc_token
 
 def execute_query(query, args=None, fetch=True):
+    """Execute query and return rows if fetch=True."""
     db = get_db()
     cur = db.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
 
@@ -109,6 +112,7 @@ def log_action(action_text, worker_id=-1):
     )
 
 def refresh_bans():
+    """Delete rows older then 2 days from banned table."""
     # Delete rows older then 2 days from banned table
     execute_query(
         f'DELETE FROM banned WHERE created < NOW() - INTERVAL \'{current_app.config["BAN_DELETE_PERIOD"]} days\'',

@@ -4,6 +4,7 @@ from flask import Flask, render_template, g, url_for, redirect, session, send_fr
 import psycopg2
 
 def create_app():
+    """Create and configure an instance of the Flask application."""
 
     # create and configure the app
     app = Flask(__name__)
