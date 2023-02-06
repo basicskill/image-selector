@@ -101,7 +101,7 @@ def delete_classification(classification):
     execute_query('UPDATE admins SET img_classes = %s', (img_classes,), fetch=False)
 
     # Log action
-    log_action(f"Classification {classification} deleted")
+    log_action(f"Class {classification} deleted")
 
     return redirect(url_for('admin.image_explorer'))
 
@@ -135,7 +135,7 @@ def upload_images():
                     )
 
                     # Log action
-                    log_action(f"Image {filename} uploaded as class {processing}/{classification}") 
+                    log_action(f"Image {filename} uploaded as {processing} with class {classification}") 
                     num_uploaded += 1
 
                 else:
@@ -313,7 +313,7 @@ def edit_image(id):
             rename_file(image['filename'], filename)
 
         # Log action
-        log_action(f"Image {image['filename']} edited to classification {classification} and processing {processing}")
+        log_action(f"Image {image['filename']} edited to {processing} with class {classification}")
 
         # Redirect to edit image page
         return redirect(url_for('admin.edit_image', id=id))
