@@ -409,7 +409,7 @@ def download_data():
                     yield get_object(file_name)['Body'].read()
                 z.write_iter(f"{classification}/{file_name}", generator())
 
-        response = Response(generator(), mimetype='application/zip')
+        response = Response(z, mimetype='application/zip')
         response.headers['Content-Disposition'] = 'attachment; filename=processed_images.zip'
         return response
 
