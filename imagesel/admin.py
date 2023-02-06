@@ -10,7 +10,7 @@ import zipstream
 from imagesel.db import execute_query, add_worker, log_action
 from imagesel.auth import admin_required
 from imagesel.images import (
-    upload_file, rename_file, delete_file, get_object
+    upload_file, rename_file, delete_file, get_object, create_s3
 )
 # Create admin blueprint
 bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -406,7 +406,7 @@ def download_data():
             for image in images:
                 file_name = image['filename']
                 def generator():
-                    yield get_object(file_name)['Body'].read()
+                    yield get_object(file_name, create_s3())['Body'].read()
                 z.write_iter(f"{classification}/{file_name}", generator())
 
         response = Response(z, mimetype='application/zip')

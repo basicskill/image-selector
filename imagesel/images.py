@@ -35,15 +35,20 @@ def load_logged_in_user():
             g.user = g.user[0]
 
 
-# Get S3 connection
+# Create new S3 connection
+def create_s3():
+    return boto3.client(
+        "s3",
+        aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+        aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+    )
+
+
+# Get existing S3 connection (or create new one)
 def get_s3():
     """Get S3 connection from global variable or create new one."""
     if 's3' not in g:
-        g.s3 = boto3.client(
-            "s3",
-            aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
-            aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
-        )
+        g.s3 = create_s3()
 
     return g.s3
 
@@ -63,9 +68,10 @@ def init_app(app):
 
 
 # Get image object from S3
-def get_object(image_name):
+def get_object(image_name, s3=None):
     """Get image object from S3."""
-    s3 = get_s3()
+    if s3 is None:
+        s3 = get_s3()
     obj = s3.get_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=image_name)
 
     return obj
