@@ -400,7 +400,7 @@ def download_data():
                 "SELECT * FROM images WHERE classification = %s AND processing = 'processed'", (classification,)
             )
             # Create folder for each class
-            z.writestr(f"{classification}/", "")
+            z.writestr(f"{classification}", bytes())
 
             # Add images to zip file
             for image in images:
