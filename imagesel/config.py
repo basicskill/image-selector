@@ -1,32 +1,29 @@
 # Secret key for session
-SECRET_KEY='dev'
+SECRET_KEY = 'dev'
 
-# Define number of correct images to show in testing phase
-NUM_TEST_CORRECT = 4
+# Number of correct images to show in testing phase
+NUM_TEST_CORRECT = 8
 
-# Define number of incorrect images to show in testing phase
-NUM_TEST_INCORRECT = 4
+# Number of incorrect images to show in testing phase
+NUM_TEST_INCORRECT = 0
 
-# Define number of images from holding to show in testing phase
+# Number of images from holding to show in testing phase
 NUM_TEST_HOLDING = 2
 
-# Define number of images to show in labeling phase
+# Number of images to show in labeling phase
 NUM_LABELING = 10
 
-# Define number of votes to move image from holding to processed
+# Number of votes to move image from holding to processed
 NUM_VOTES = 3
 
-# Images upload folder
-UPLOAD_FOLDER = '/home/mladen/projekti/image-selector/images_db'
-
-# Define number of days for deleting of logs
+# Number of days for deleting of logs
 LOG_DELETE_PERIOD = 7
 
-# Define number of days for deleting of bans
+# Number of days for deleting of bans
 BAN_DELETE_PERIOD = 14
 
 # Define image states
 STATES = ['processed', 'unprocessed', 'holding']
 
-# Define number of images per page
+# Number of images shown per page in admin panel
 PAGE_SIZE = 10

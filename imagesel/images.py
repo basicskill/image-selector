@@ -1,17 +1,15 @@
-import os, base64, json
-import time
+import os
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, send_from_directory, current_app, make_response
+    Blueprint, g, session, make_response
 )
 import boto3
 import click
-from concurrent import futures
-from concurrent.futures import ProcessPoolExecutor
 
-from imagesel.db import execute_query, refresh_bans
+from imagesel.db import execute_query
 
 bp = Blueprint('images', __name__, url_prefix='/images')
+
 
 # Before all requests run blueprint
 @bp.before_app_request
@@ -22,14 +20,12 @@ def load_logged_in_user():
 
     if user_id is None:
         g.user = None
-
     else:
         if is_admin:
             # Query admins table
             g.user = execute_query(
                 "SELECT * FROM admins WHERE id = %s", (user_id,)
             )
-
         else:
             g.user = execute_query(
                 "SELECT * FROM workers WHERE id = %s", (user_id,)
@@ -48,7 +44,7 @@ def get_s3():
             aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
             aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
         )
-    
+
     return g.s3
 
 
@@ -82,7 +78,7 @@ def upload_file(image, filename):
 
     bucket = os.environ["AWS_BUCKET_NAME"]
     file_list = s3.list_objects(Bucket=bucket).get('Contents')
-    
+
     # Check if file already exists
     if file_list is not None:
         file_list = [file['Key'] for file in file_list]
@@ -101,14 +97,16 @@ def upload_file(image, filename):
 
     return filename
 
+
 # Delete file from S3
 def delete_file(filename):
     """Delete file from S3."""
     s3 = get_s3()
     try:
         s3.delete_object(Bucket=os.environ["AWS_BUCKET_NAME"], Key=filename)
-    except:
+    except Exception:
         print(f"Amazon S3: File {filename} not found")
+
 
 # Delete all images from S3
 def delete_all_files():

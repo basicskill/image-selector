@@ -1,12 +1,9 @@
 import os, random, string
-from shutil import rmtree
 
 import click
 from flask import current_app, g
 import psycopg2
 import psycopg2.extras
-
-from werkzeug.security import generate_password_hash
 
 
 def get_db():
@@ -28,6 +25,7 @@ def close_db(e=None):
     if db is not None:
         db.close()
 
+
 def init_db():
     """Clear existing data and create new tables."""
     # Get database
@@ -37,7 +35,7 @@ def init_db():
     # Execute schema.sql
     with current_app.open_resource('schema.sql') as f:
         cur.execute(f.read().decode('utf8'))
-    
+
     # Commit init script
     db.commit()
     cur.close()
@@ -78,16 +76,17 @@ def add_worker(username):
 
     return acc_token
 
+
 def execute_query(query, args=None, fetch=True):
     """Execute query and return rows if fetch=True."""
     db = get_db()
-    cur = db.cursor(cursor_factory = psycopg2.extras.RealDictCursor)
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
 
     cur.execute(query, args)
     rows = []
     if fetch:
         rows = cur.fetchall()
-    
+
     db.commit()
     cur.close()
     close_db()
@@ -110,6 +109,7 @@ def log_action(action_text, worker_id=-1):
         f'DELETE FROM logs WHERE created < NOW() - INTERVAL \'{current_app.config["LOG_DELETE_PERIOD"]} days\'',
         fetch=False
     )
+
 
 def refresh_bans():
     """Delete rows older then 2 days from banned table."""

@@ -1,18 +1,15 @@
-import functools, base64
-import io, os
-import gzip
+import io
 from zipfile import ZipFile
 from datetime import timedelta
 from math import ceil
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, abort,
-    send_file, current_app
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, send_file, current_app
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from imagesel.db import execute_query, add_worker, log_action
-from imagesel.auth import login_required, admin_required
+from imagesel.auth import admin_required
 from imagesel.images import (
     upload_file, rename_file, delete_file, get_object
 )
@@ -29,7 +26,7 @@ def load_logged_in_user():
 
     if user_id is None:
         g.user = None
-    
+
     elif is_admin:
         # Query admins table
         g.user = execute_query(
@@ -73,6 +70,7 @@ def dashboard():
 
     return render_template("admin/dashboard.html")
 
+
 @bp.route('/<int:id>/delete', methods=('POST',))
 @admin_required
 def delete(id):
@@ -89,15 +87,15 @@ def delete(id):
     return redirect(url_for('admin.dashboard'))
 
 
-# Delete classification type from admins page
+# Delete class type from admins page
 @bp.route('/<classification>/delete_classification', methods=('POST',))
 @admin_required
 def delete_classification(classification):
     """Delete a classification type from the database with post request."""
-    # Fetch classification from admins table
+    # Fetch classes from admins table
     img_classes = execute_query('SELECT img_classes FROM admins')[0]['img_classes']
 
-    # Remove classification from list
+    # Remove class from list
     img_classes.remove(classification)
 
     # Update admins table
@@ -187,7 +185,7 @@ def image_explorer():
             "SELECT COUNT(*) FROM images WHERE classification = %s AND processing = 'processed'", 
             (class_name,)
         )[0]['count']
-    
+
     g.classes = class_counts
     g.unprocessed_classes = unprocessed_classes
 
@@ -200,25 +198,25 @@ def image_explorer():
         g.images = execute_query(
             "SELECT * FROM images"
         )
-    
+
     # Generate image query if processing is "all" and class is not "all"
     elif processing == "all":
         g.images = execute_query(
             "SELECT * FROM images WHERE classification = %s", (classification,)
         )
-    
+
     # Generate image query if processing is not "all" and class is "all"
     elif classification == "all":
         g.images = execute_query(
             "SELECT * FROM images WHERE processing = %s", (processing,)
         )
-    
+
     # Generate image query if processing is not "all" and class is not "all"
     else:
         g.images = execute_query(
             "SELECT * FROM images WHERE classification = %s AND processing = %s", (classification, processing)
         )
-    
+
     # Implement page scrolling
     page_size = current_app.config['PAGE_SIZE']
     g.pages = ceil(len(g.images) / page_size)
@@ -228,7 +226,7 @@ def image_explorer():
         curr_page = g.pages
     if curr_page < 1:
         curr_page = 1
-    
+
     if g.pages == 0:
         curr_page = 0
 
@@ -245,7 +243,7 @@ def delete_images():
     img_ids = request.form.keys()
 
     for img_id in img_ids:
-         # Get image from database
+        # Get image from database
         image = execute_query(
             "SELECT * FROM images WHERE id = %s", (img_id,)
         )[0]
@@ -320,7 +318,7 @@ def edit_image(id):
 
         # Redirect to edit image page
         return redirect(url_for('admin.edit_image', id=id))
-        
+
     return render_template("admin/edit_image.html", image=image)
 
 
@@ -373,14 +371,14 @@ def change_password():
 
         # Update admin password in database
         execute_query("UPDATE admins SET password = %s WHERE username = 'admin'",
-            (generate_password_hash(new_password),), 
+            (generate_password_hash(new_password),),
             fetch=False
         )
         flash("Password changed successfully")
-    
+
         # Log action
         log_action(f"Admin password changed")
-    
+
     return render_template("admin/change_password.html")
 
 
@@ -393,12 +391,12 @@ def download_data():
         # Init zip file 
         mem = io.BytesIO()
         zip_f = ZipFile(mem, 'w')
-        
+
         # Query all classes from admin table
         classes = execute_query(
             "SELECT img_classes FROM admins"
         )[0]['img_classes']
-    
+
         # Get images from database
         for classification in classes:
             images = execute_query(
@@ -415,7 +413,7 @@ def download_data():
         # Close zip file
         zip_f.close()
         mem.seek(0)
-        
+
         return send_file(mem, as_attachment=True, download_name="processed_images.zip",
                             mimetype='application/gzip')
 
@@ -462,7 +460,7 @@ def user_page(worker_name):
     log_txt = ""
     for txt in sorted(worker_logs, key=lambda x: x['created'], reverse=True):
         log_txt += f"{txt['created']} - {txt['textmsg']}\n\n"
- 
+
     return render_template("admin/user.html", worker=worker, worker_eligible=worker_eligible,
         banned_classes=banned_classes, log_txt=log_txt, label_time=label_time)
 
@@ -493,7 +491,7 @@ def delete_eligible_class(worker_name, class_name):
     # Write to database
     execute_query("UPDATE workers SET eligible_classes = %s, num_labeled = %s WHERE username = %s",
         (worker['eligible_classes'], worker['num_labeled'], worker_name), fetch=False)
-    
+
     # Log action
     log_action(f"Class {class_name} deleted from eligible classes for worker {worker_name}")
 
@@ -516,7 +514,7 @@ def delete_ban(worker_name, class_name):
 
     # Delete ban from database
     execute_query("DELETE FROM banned WHERE id = %s", (ban['id'],), fetch=False)
-    
+
     # Log action
     log_action(f"Ban for class {class_name} deleted for worker {worker_name}")
 

@@ -9,6 +9,7 @@ from imagesel.db import execute_query, refresh_bans
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+
 # Before all requests run blueprint
 @bp.before_app_request
 def load_logged_in_user():
@@ -44,6 +45,7 @@ def login():
 
     return render_template('auth/login.html')
 
+
 @bp.route('/admin', methods=('GET',))
 def admin_login_page():
     """Show admin login page."""
@@ -61,7 +63,7 @@ def worker_login():
     if request.method == 'POST':
         token = request.form['token'].strip()
         error = None
-   
+
         user = execute_query(
             'SELECT * FROM workers WHERE token = %s', (token,)
         )
@@ -69,7 +71,7 @@ def worker_login():
         if len(user) == 0:
             flash('Incorrect token.')
             return render_template('auth/login.html')
-        
+
         user = user[0]
 
         if error is None:
@@ -99,9 +101,9 @@ def admin_login():
     if len(user) == 0:
         flash('Incorrect username.')
         return render_template('auth/login.html')
-    
+
     user = user[0]
-    
+
     if not check_password_hash(user["password"], password):
         error = 'Incorrect password.'
 
@@ -136,6 +138,7 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
+
 
 # Decorator for admin login required
 def admin_required(view):
