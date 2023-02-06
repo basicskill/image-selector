@@ -1,12 +1,11 @@
-import io
-from zipfile import ZipFile
 from datetime import timedelta
 from math import ceil
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, send_file, current_app
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, Response, current_app
 )
 from werkzeug.security import check_password_hash, generate_password_hash
+import zipstream
 
 from imagesel.db import execute_query, add_worker, log_action
 from imagesel.auth import admin_required
@@ -388,10 +387,8 @@ def change_password():
 def download_data():
     """Download database as zip file from S3."""
     if request.method == 'POST':
-        # Init zip file 
-        mem = io.BytesIO()
-        zip_f = ZipFile(mem, 'w')
-
+        # Create zip file
+        z = zipstream.ZipFile(mode='w', compression=zipstream.ZIP_DEFLATED)
         # Query all classes from admin table
         classes = execute_query(
             "SELECT img_classes FROM admins"
@@ -403,19 +400,18 @@ def download_data():
                 "SELECT * FROM images WHERE classification = %s AND processing = 'processed'", (classification,)
             )
             # Create folder for each class
-            zip_f.writestr(f"{classification}/", "")
+            z.writestr(f"{classification}/", "")
 
             # Add images to zip file
             for image in images:
                 file_name = image['filename']
-                zip_f.writestr(f"{classification}/{file_name}", get_object(file_name)['Body'].read())
+                def generator():
+                    yield get_object(file_name)['Body'].read()
+                z.write_iter(f"{classification}/{file_name}", generator())
 
-        # Close zip file
-        zip_f.close()
-        mem.seek(0)
-
-        return send_file(mem, as_attachment=True, download_name="processed_images.zip",
-                            mimetype='application/gzip')
+        response = Response(generator(), mimetype='application/zip')
+        response.headers['Content-Disposition'] = 'attachment; filename=processed_images.zip'
+        return response
 
     # Get all logs from database
     logs = execute_query(
