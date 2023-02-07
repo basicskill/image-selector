@@ -134,3 +134,7 @@ body {
 td input {
   margin-bottom: 0px !important;
 }
+
+.display-none {
+  display: none;
+}

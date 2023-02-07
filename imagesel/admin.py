@@ -141,9 +141,9 @@ def upload_images():
                 else:
                     flash(f'File "{image.filename}" is not an image.')
 
-        flash(f'{num_uploaded} images uploaded successfully')
+        # flash(f'{num_uploaded} images uploaded successfully')
 
-    return redirect(url_for('admin.image_explorer'))
+    return "ok"
 
 
 # Image explorer page

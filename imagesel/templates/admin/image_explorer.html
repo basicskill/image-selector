@@ -8,8 +8,13 @@
         const files = document.getElementById('images').files;
         const classification = document.getElementById('classification').value;
         const processing = document.getElementById('processing').value;
-        const promises = [];
 
+        const progress = document.getElementById('progress');
+        progress.classList.remove('display-none');
+        progress.max = files.length;
+
+        const promises = [];
+        var finished = 0;
         for (var i = 0; i < files.length; i++) {
             var promise = new Promise((resolve, reject) => {
                 var formData = new FormData();
@@ -22,6 +27,8 @@
                 request.send(formData);
                 request.onload = function() {
                     if (request.status == 200) {
+                        finished++;
+                        progress.value = finished;
                         resolve();
                     } else {
                         alert('Error uploading images');
@@ -52,7 +59,8 @@
         {% endfor %}
     </select>
     <br>
-  <input type="submit" class="btn btn-primary" value="Upload">
+    <progress id="progress" class="display-none"></progress>
+    <input type="submit" class="btn btn-primary" value="Upload">
 </form>
 
 <h2>Classes</h2>
