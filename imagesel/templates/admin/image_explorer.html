@@ -12,6 +12,9 @@
         const progress = document.getElementById('progress');
         progress.classList.remove('display-none');
         progress.max = files.length;
+        const btn = document.getElementById('upload-btn');
+        btn.disabled = true;
+        btn.value = 'Uploading...';
 
         const promises = [];
         var finished = 0;
@@ -31,7 +34,7 @@
                         progress.value = finished;
                         resolve();
                     } else {
-                        alert('Error uploading images');
+                        alert('Error uploading image ' + file.name);
                         reject();
                     }
                 }
@@ -39,7 +42,7 @@
             promises.push(promise);
         }
         Promise.all(promises).then(function() {
-            alert('Images uploaded successfully');
+            //alert('Images uploaded successfully');
             location.reload();
         });
     }
@@ -60,7 +63,7 @@
     </select>
     <br>
     <progress id="progress" class="display-none"></progress>
-    <input type="submit" class="btn btn-primary" value="Upload">
+    <input type="submit" id="upload-btn" class="btn btn-primary" value="Upload">
 </form>
 
 <h2>Classes</h2>
