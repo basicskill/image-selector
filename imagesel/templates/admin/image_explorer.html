@@ -11,23 +11,24 @@
         const promises = [];
 
         for (var i = 0; i < files.length; i++) {
-            var promise = new Promise();
-            var formData = new FormData();
-            var file = files[i];
-            formData.append('images', file, file.name);
-            formData.append('classification', classification);
-            formData.append('processing', processing);
-            var request = new XMLHttpRequest();
-            request.open('POST', '{{ url_for('admin.upload_images') }}');
-            request.send(formData);
-            request.onload = function() {
-                if (request.status == 200) {
-                    promise.resolve();
-                } else {
-                    alert('Error uploading images');
-                    promise.reject();
+            var promise = new Promise((resolve, reject) => {
+                var formData = new FormData();
+                var file = files[i];
+                formData.append('images', file, file.name);
+                formData.append('classification', classification);
+                formData.append('processing', processing);
+                var request = new XMLHttpRequest();
+                request.open('POST', '{{ url_for('admin.upload_images') }}');
+                request.send(formData);
+                request.onload = function() {
+                    if (request.status == 200) {
+                        resolve();
+                    } else {
+                        alert('Error uploading images');
+                        reject();
+                    }
                 }
-            }
+            });
             promises.push(promise);
         }
         Promise.all(promises).then(function() {
@@ -37,7 +38,7 @@
     }
 </script>
 <h2>Upload new images</h2>
-<form action="{{ url_for('admin.upload_images') }}" method="post" enctype="multipart/form-data" onsubmit="onUpload(); return false;">
+<form enctype="multipart/form-data" onsubmit="onUpload(); return false;">
   <input type="file" class="form-control" name="images" id="images" multiple accept="image/*">
   <label for="classification">Upload images as:</label>
     <select name="processing" id="processing" class="form-select">
