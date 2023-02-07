@@ -138,3 +138,7 @@ td input {
 .display-none {
   display: none;
 }
+
+select, progress {
+  margin-bottom: 16px;
+}
