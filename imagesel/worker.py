@@ -76,6 +76,30 @@ def selection_choice():
 
     return render_template("worker/selection_choice.html", img_classes=img_classes, eligible_classes=eligible_classes, banned_classes=banned_classes)
 
+
+def pick_testing_images():
+    # Query NUM_CORRECT processed images with class equal to user's selected class
+    session["selected_image_ids"] = [row["id"] for row in execute_query(
+        "SELECT id FROM images WHERE classification = %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
+        (session.get("selected_class"),
+         g.user["id"], current_app.config["NUM_TEST_CORRECT"],)
+    )]
+
+    # Query NUM_INCORRECT processed images with class different from user's selected class
+    session["selected_image_ids"] += [row["id"] for row in execute_query(
+        "SELECT id FROM images WHERE classification != %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
+        (session.get("selected_class"),
+         g.user["id"], current_app.config["NUM_TEST_INCORRECT"],)
+    )]
+
+    # Query NUM_HOLDING unprocessed images
+    session["selected_image_ids"] += [row["id"] for row in execute_query(
+        "SELECT id FROM images WHERE processing = 'unprocessed' AND NOT %s = ANY(labeled_by) AND classification IN %s ORDER BY RANDOM() LIMIT %s",
+        (g.user["id"], (session.get("selected_class"), "/"),
+         current_app.config["NUM_TEST_HOLDING"],)
+    )]
+
+
 @bp.route('/testing', methods=('GET', 'POST'))
 @login_required
 def testing():
@@ -89,23 +113,7 @@ def testing():
         return redirect(url_for('worker.labeling'))
 
     if "selected_image_ids" not in session:
-        # Query NUM_CORRECT processed images with class equal to user's selected class
-        session["selected_image_ids"] = [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE classification = %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-            (session.get("selected_class"), g.user["id"], current_app.config["NUM_TEST_CORRECT"],)
-        )]
-
-        # Query NUM_INCORRECT processed images with class different from user's selected class
-        session["selected_image_ids"] += [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE classification != %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-            (session.get("selected_class"), g.user["id"], current_app.config["NUM_TEST_INCORRECT"],)
-        )]
-
-        # Query NUM_HOLDING unprocessed images
-        session["selected_image_ids"] += [row["id"] for row in execute_query(
-            "SELECT id FROM images WHERE processing = 'unprocessed' AND NOT %s = ANY(labeled_by) AND classification IN %s ORDER BY RANDOM() LIMIT %s",
-            (g.user["id"], (session.get("selected_class"), "/"), current_app.config["NUM_TEST_HOLDING"],)
-        )]
+        pick_testing_images()
 
     # Query images with id from session selected_image_ids
     selected_images = execute_query(
@@ -121,13 +129,13 @@ def testing():
 # Submit selected image
 @bp.route('/submit_testing', methods=('POST',))
 @login_required
-def submit_testing():
+def submit_testing(random_test=False):
     """Submit selected images from testing page."""
     # Get selected image id from request
     selected_image_ids = request.form.keys()
 
     # Check if user selected anything
-    if not selected_image_ids:
+    if not selected_image_ids and not random_test:
         flash("Select at least one image")
         return redirect(url_for('worker.testing'))
 
@@ -147,7 +155,8 @@ def submit_testing():
     # Threshold is read from config file
     if selected_correct >= current_app.config["NUM_TEST_CORRECT"] - 1 and selected_wrong == 0:
         # Log action
-        log_action(f"User {g.user['username']} passed testing stage for class {session['selected_class']}", g.user["id"])
+        test_type = "random test" if random_test else "testing stage"
+        log_action(f"User {g.user['username']} passed {test_type} for class {session['selected_class']}", g.user["id"])
 
         # Change selected images which are unprocessed to holding,
         # change their class count to 1 and their classification to user's selected class
@@ -179,29 +188,56 @@ def submit_testing():
             fetch=False
         )
 
-        # Clear selected image ids from session
-        session.pop("selected_image_ids", None)
+        if random_test:
+            selected_class = session["selected_class"]
+            num_of_labeled = len(selected_image_ids)
+            num_of_imgs = session["num_of_imgs"]
 
-        return redirect(url_for('worker.testing_passed'))
+            session.pop("selected_class", None)
+            session.pop("num_of_imgs", None)
+            session.pop("to_be_labeled_ids", None)
+            session.pop("label_start", None)
+            session.pop("random_testing", None)
+            session.pop("selected_image_ids", None)
 
-    # Log action
-    log_action(f"User {g.user['username']} failed testing for class {session['selected_class']} and is banned", g.user["id"])
+            return redirect(url_for("worker.feedback_success", selected_class=selected_class, num_of_labeled=num_of_labeled, num_total=num_of_imgs))
+        else:
+            # Clear selected image ids from session
+            session.pop("selected_image_ids", None)
 
-    # Add selected class to banned table for worker
-    execute_query(
-        "INSERT INTO banned (worker_id, class) VALUES (%s, %s)",
-        (g.user["id"], session["selected_class"]),
-        fetch=False
-    )
+            return redirect(url_for('worker.testing_passed'))
+    else:
+        if random_test:
+            log_action(f"User {g.user['username']} failed random test for class {session['selected_class']}", g.user["id"])
 
-    # Save user's class selection for feedback page
-    selected_class = session["selected_class"]
+            flash("You failed random testing", "warning")
 
-    # Delete session
-    session.pop("selected_class", None)
-    session.pop("num_of_imgs", None)
+            session.pop("selected_class", None)
+            session.pop("num_of_imgs", None)
+            session.pop("to_be_labeled_ids", None)
+            session.pop("label_start", None)
+            session.pop("random_testing", None)
+            session.pop("selected_image_ids", None)
 
-    return redirect(url_for('worker.feedback_fail', selected_class=selected_class))
+            return redirect(url_for('worker.feedback_radnom_fail', selected_class=selected_class))
+        else:
+            log_action(f"User {g.user['username']} failed testing stage for class {session['selected_class']} and is banned", g.user["id"])
+
+            # Add selected class to banned table for worker
+            execute_query(
+                "INSERT INTO banned (worker_id, class) VALUES (%s, %s)",
+                (g.user["id"], session["selected_class"]),
+                fetch=False
+            )
+
+            # Save user's class selection for feedback page
+            selected_class = session["selected_class"]
+
+            # Delete session
+            session.pop("selected_class", None)
+            session.pop("num_of_imgs", None)
+
+            return redirect(url_for('worker.testing_failed', selected_class=selected_class))
 
 
 # Define testing passed feedback page
@@ -234,11 +270,14 @@ def labeling():
     # and append their ids to session to_be_labeled_ids
     # Skip images already labeled by current user
     if "to_be_labeled_ids" not in session:
-        # TODO If random testing is enabled, choose random images from database
-        session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
-            "SELECT * FROM images WHERE processing != 'processed' AND NOT %s = ANY(labeled_by) AND classification IN %s ORDER BY RANDOM() LIMIT %s",
-            (g.user["id"], (session.get("selected_class"), "/"), session["num_of_imgs"],)
-        )]
+        if session["random_testing"]:
+            pick_testing_images()
+            session["to_be_labeled_ids"] = session["selected_image_ids"]
+        else:
+            session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
+                "SELECT * FROM images WHERE processing != 'processed' AND NOT %s = ANY(labeled_by) AND classification IN %s ORDER BY RANDOM() LIMIT %s",
+                (g.user["id"], (session.get("selected_class"), "/"), session["num_of_imgs"],)
+            )]
 
     # Query images from database with id from session selected_image_ids 
     selected_images = []
@@ -358,6 +397,8 @@ def labeling_submit():
     session.pop("num_of_imgs", None)
     session.pop("to_be_labeled_ids", None)
     session.pop("label_start", None)
+    session.pop("selected_image_ids", None)
+    session.pop("random_testing", None)
 
     # Redirect to feedback page
     return redirect(url_for("worker.feedback_success", selected_class=selected_class, num_of_labeled=num_of_labeled, num_total=num_of_imgs))

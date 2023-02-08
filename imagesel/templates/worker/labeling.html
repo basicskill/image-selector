@@ -7,7 +7,7 @@
 {% block content %}
   <h2>Label all images that belong in class {{ session['selected_class'] }}:</h2>
   {% if session['random_testing'] %} <!-- TODO Remove -->
-    <h3>TEST</h3>
+    <h2>TEST</h2>
   {% endif %}
   
   <form action="/worker/labeling_submit" method="post">
