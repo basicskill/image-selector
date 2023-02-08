@@ -153,7 +153,7 @@ def submit_testing(random_test=False):
 
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
-    if selected_correct >= current_app.config["NUM_TEST_CORRECT"] - 1 and selected_wrong == 0:
+    if selected_correct >= current_app.config["NUM_TEST_CORRECT"] - 1 and selected_wrong <= 1:
         # Log action
         test_type = "random test" if random_test else "testing stage"
         log_action(f"User {g.user['username']} passed {test_type} for class {session['selected_class']}", g.user["id"])
@@ -297,7 +297,7 @@ def labeling_submit():
     """Update counts of selected images and change their processing to holding or processed."""
 
     if session.get("random_testing"):
-        return submit_testing(True)
+        return submit_testing(random_test=True)
 
     # Get selected image id from request
     selected_image_ids = request.form.keys()
