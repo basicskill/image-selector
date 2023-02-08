@@ -154,12 +154,12 @@ select, progress {
   margin-bottom: 16px;
 }
 
-.flash .error {
+.flash.error {
   background-color: #ff9797;
   border-color: #ff0000;
 }
 
-.flash .warning {
+.flash.warning {
   background-color: rgb(255, 226, 171);
   border-color: rgb(255, 165, 0);
 }

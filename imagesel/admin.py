@@ -65,7 +65,7 @@ def dashboard():
 
             return redirect(url_for('admin.dashboard'))
 
-        flash(error)
+        flash(error, "error")
 
     return render_template("admin/dashboard.html")
 
@@ -139,7 +139,7 @@ def upload_images():
                     num_uploaded += 1
 
                 else:
-                    flash(f'File "{image.filename}" is not an image.')
+                    flash(f'File "{image.filename}" is not an image.', "error")
 
         # flash(f'{num_uploaded} images uploaded successfully')
 
@@ -276,7 +276,7 @@ def add_class():
     if new_class:
         # Check if class already exists
         if new_class in classes[0]['img_classes']:
-            flash(f'Class "{new_class}" already exists.')
+            flash(f'Class "{new_class}" already exists.', "error")
 
         else:
             # Add class to img_classes field in admins table
@@ -360,12 +360,12 @@ def change_password():
 
         # Check if old password is correct
         if not check_password_hash(admin['password'], old_password):
-            flash('Incorrect password.')
+            flash('Incorrect password.', "error")
             return redirect(url_for('admin.change_password'))
 
         # Check if new password and confirm password are the same
         if new_password != confirm_password:
-            flash('New password and confirm password are not the same.')
+            flash('New password and confirm password are not the same.', "error")
             return redirect(url_for('admin.change_password'))
 
         # Update admin password in database
