@@ -303,6 +303,8 @@ def labeling_submit():
 
     # Get selected image id from request
     selected_image_ids = request.form.keys()
+    if len(selected_image_ids) == 0:
+        selected_image_ids = [-1]
 
     # Save selected class
     selected_class = session["selected_class"]
