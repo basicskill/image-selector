@@ -295,6 +295,10 @@ def labeling():
 @login_required
 def labeling_submit():
     """Update counts of selected images and change their processing to holding or processed."""
+
+    if session.get("random_testing"):
+        return submit_testing(True)
+
     # Get selected image id from request
     selected_image_ids = request.form.keys()
 
