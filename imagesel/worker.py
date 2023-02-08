@@ -167,12 +167,13 @@ def submit_testing(random_test=False):
             fetch=False
         )
 
-        # Update worker to be eligible for selected class
-        execute_query(
-            f"UPDATE workers SET eligible_classes = array_append(eligible_classes, %s) WHERE id = %s",
-            (session["selected_class"], g.user["id"]),
-            fetch=False
-        )
+        if not random_test:
+            # Update worker to be eligible for selected class
+            execute_query(
+                f"UPDATE workers SET eligible_classes = array_append(eligible_classes, %s) WHERE id = %s",
+                (session["selected_class"], g.user["id"]),
+                fetch=False
+            )
 
         # Update workers's cumulative_time_spent array in database
         execute_query(
