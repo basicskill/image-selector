@@ -67,7 +67,7 @@ def selection_choice():
 
             return redirect(url_for('worker.testing'))
         else:
-            flash("You are banned from labeling this class!")
+            flash("You are banned from labeling this class!", "error")
 
     # Query img_classes from admins database
     img_classes = execute_query(
@@ -136,7 +136,7 @@ def submit_testing(random_test=False):
 
     # Check if user selected anything
     if not selected_image_ids and not random_test:
-        flash("Select at least one image")
+        flash("Select at least one image", "error")
         return redirect(url_for('worker.testing'))
 
     # Count processed images with class equal to session selected class
