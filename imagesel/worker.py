@@ -130,6 +130,7 @@ def submit_testing(random_test=False):
     """Submit selected images from testing page."""
     # Get selected image id from request
     selected_image_ids = request.form.keys()
+    selected_image_count = len(selected_image_ids)
     if len(selected_image_ids) == 0:
         selected_image_ids = [-1]
 
@@ -189,7 +190,6 @@ def submit_testing(random_test=False):
 
         if random_test:
             selected_class = session["selected_class"]
-            num_of_labeled = len(selected_image_ids)
             num_of_imgs = session["num_of_imgs"]
 
             session.pop("selected_class", None)
@@ -199,7 +199,7 @@ def submit_testing(random_test=False):
             session.pop("random_testing", None)
             session.pop("selected_image_ids", None)
 
-            return redirect(url_for("worker.feedback_success", selected_class=selected_class, num_of_labeled=num_of_labeled, num_total=num_of_imgs))
+            return redirect(url_for("worker.feedback_success", selected_class=selected_class, num_of_labeled=selected_image_count, num_total=num_of_imgs))
         else:
             # Clear selected image ids from session
             session.pop("selected_image_ids", None)
@@ -300,12 +300,13 @@ def labeling_submit():
 
     # Get selected image id from request
     selected_image_ids = request.form.keys()
+    selected_image_count = len(selected_image_ids)
     if len(selected_image_ids) == 0:
         selected_image_ids = [-1]
 
     # Save selected class
     selected_class = session["selected_class"]
-    num_of_labeled = len(selected_image_ids)
+    num_of_labeled = selected_image_count
     num_of_imgs = session["num_of_imgs"]
 
     # Calculate time spent labeling
@@ -325,7 +326,7 @@ def labeling_submit():
         label_time = f"{int(label_time // 60):02}:{int(label_time % 60):02}"
 
         # Log action
-        log_action(f"User {g.user['username']} labeled {session['num_of_imgs']} images of which {len(selected_image_ids)} are in class {session['selected_class']} in {label_time}",
+        log_action(f"User {g.user['username']} labeled {session['num_of_imgs']} images of which 0 are in class {session['selected_class']} in {label_time}",
                 g.user["id"])
 
         session.pop("selected_class", None)
@@ -387,7 +388,7 @@ def labeling_submit():
     label_time = f"{int(label_time // 60):02}:{int(label_time % 60):02}"
 
     # Log action
-    log_action(f"User {g.user['username']} labeled {session['num_of_imgs']} images of which {len(selected_image_ids)} are in class {session['selected_class']} in {label_time}",
+    log_action(f"User {g.user['username']} labeled {session['num_of_imgs']} images of which {num_of_labeled} are in class {session['selected_class']} in {label_time}",
                g.user["id"])
 
     # Log into activity table
