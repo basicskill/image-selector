@@ -428,7 +428,7 @@ def feedback_success():
 def testing_failed():
     """Feedback page after failing at testing phase."""
     selected_class = request.args.get("selected_class")
-    return render_template("worker/testing_failes.html", selected_class=selected_class)
+    return render_template("worker/testing_failed.html", selected_class=selected_class)
 
 
 # Feedback page
