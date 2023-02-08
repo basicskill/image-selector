@@ -210,7 +210,7 @@ def submit_testing(random_test=False):
         if random_test:
             log_action(f"User {g.user['username']} failed random test for class {session['selected_class']}", g.user["id"])
 
-            flash("You failed random testing", "warning")
+            # flash("You failed random testing", "warning")
 
             session.pop("selected_class", None)
             session.pop("num_of_imgs", None)
