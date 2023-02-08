@@ -80,23 +80,20 @@ def selection_choice():
 def pick_testing_images():
     # Query NUM_CORRECT processed images with class equal to user's selected class
     session["selected_image_ids"] = [row["id"] for row in execute_query(
-        "SELECT id FROM images WHERE classification = %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-        (session.get("selected_class"),
-         g.user["id"], current_app.config["NUM_TEST_CORRECT"],)
+        "SELECT id FROM images WHERE classification = %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
+        (session.get("selected_class"), current_app.config["NUM_TEST_CORRECT"],)
     )]
 
     # Query NUM_INCORRECT processed images with class different from user's selected class
     session["selected_image_ids"] += [row["id"] for row in execute_query(
-        "SELECT id FROM images WHERE classification != %s AND processing = 'processed' AND NOT %s = ANY(labeled_by) ORDER BY RANDOM() LIMIT %s",
-        (session.get("selected_class"),
-         g.user["id"], current_app.config["NUM_TEST_INCORRECT"],)
+        "SELECT id FROM images WHERE classification != %s AND processing = 'processed' ORDER BY RANDOM() LIMIT %s",
+        (session.get("selected_class"), current_app.config["NUM_TEST_INCORRECT"],)
     )]
 
     # Query NUM_HOLDING unprocessed images
     session["selected_image_ids"] += [row["id"] for row in execute_query(
         "SELECT id FROM images WHERE processing = 'unprocessed' AND NOT %s = ANY(labeled_by) AND classification IN %s ORDER BY RANDOM() LIMIT %s",
-        (g.user["id"], (session.get("selected_class"), "/"),
-         current_app.config["NUM_TEST_HOLDING"],)
+        (g.user["id"], (session.get("selected_class"), "/"), current_app.config["NUM_TEST_HOLDING"],)
     )]
 
 
