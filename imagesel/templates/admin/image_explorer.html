@@ -26,7 +26,7 @@
                 formData.append('classification', classification);
                 formData.append('processing', processing);
                 var request = new XMLHttpRequest();
-                request.open('POST', '{{ url_for('admin.upload_images') }}');
+                request.open('POST', "{{ url_for('admin.upload_images') }}");
                 request.send(formData);
                 request.onload = function() {
                     if (request.status == 200) {
