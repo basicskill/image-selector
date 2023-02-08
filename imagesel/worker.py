@@ -221,7 +221,7 @@ def submit_testing(random_test=False):
             session.pop("random_testing", None)
             session.pop("selected_image_ids", None)
 
-            return redirect(url_for('worker.feedback_radnom_fail', selected_class=selected_class))
+            return redirect(url_for('worker.feedback_random_fail'))
         else:
             log_action(f"User {g.user['username']} failed testing stage for class {session['selected_class']} and is banned", g.user["id"])
 
