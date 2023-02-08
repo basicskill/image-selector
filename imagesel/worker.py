@@ -428,3 +428,11 @@ def feedback_fail():
     """Feedback page after failing at testing phase."""
     selected_class = request.args.get("selected_class")
     return render_template("worker/feedback_fail.html", selected_class=selected_class)
+
+
+# Feedback page
+@bp.route('/feedback_fail', methods=('GET', 'POST'))
+@login_required
+def feedback_fail_random():
+    """Feedback page after failing at random testing."""
+    return render_template("worker/feedback_fail_random.html")
