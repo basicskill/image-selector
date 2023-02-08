@@ -1,5 +1,5 @@
 import time
-from random import shuffle
+from random import shuffle, randint
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app
@@ -145,7 +145,7 @@ def submit_testing():
 
     # Check if selected count is enough to pass to next stage
     # Threshold is read from config file
-    if selected_correct == current_app.config["NUM_TEST_CORRECT"] and selected_wrong == 0:
+    if selected_correct >= current_app.config["NUM_TEST_CORRECT"] - 1 and selected_wrong == 0:
         # Log action
         log_action(f"User {g.user['username']} passed testing stage for class {session['selected_class']}", g.user["id"])
 
@@ -226,11 +226,15 @@ def labeling():
         # If not, set it to current time
         session["label_start"] = time.time()
 
+    if "random_testing" not in session:
+        session["random_testing"] = randint(1, current_app.config["RANDOM_TESTING_PERIOD"]) == 1
+
     # Choose number of images to be labeled from session
-    # Choose num_of_imgs random images from database where processing is not equal to processed
+    # Choose num_of_imgs random not processed images
     # and append their ids to session to_be_labeled_ids
-    # If image has users id in labeled_by, skip it
+    # Skip images already labeled by current user
     if "to_be_labeled_ids" not in session:
+        # TODO If random testing is enabled, choose random images from database
         session["to_be_labeled_ids"] = [row["id"] for row in execute_query(
             "SELECT * FROM images WHERE processing != 'processed' AND NOT %s = ANY(labeled_by) AND classification IN %s ORDER BY RANDOM() LIMIT %s",
             (g.user["id"], (session.get("selected_class"), "/"), session["num_of_imgs"],)

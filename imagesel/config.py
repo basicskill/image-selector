@@ -27,3 +27,6 @@ STATES = ['processed', 'unprocessed', 'holding']
 
 # Number of images shown per page in admin panel
 PAGE_SIZE = 10
+
+# Average number of sessions between random testing
+RANDOM_TESTING_PERIOD = 2  # TODO Change back to 10
