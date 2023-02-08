@@ -133,6 +133,8 @@ def submit_testing(random_test=False):
     """Submit selected images from testing page."""
     # Get selected image id from request
     selected_image_ids = request.form.keys()
+    if len(selected_image_ids) == 0:
+        selected_image_ids = [-1]
 
     # Check if user selected anything
     if not selected_image_ids and not random_test:
