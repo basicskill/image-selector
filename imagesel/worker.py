@@ -236,6 +236,7 @@ def submit_testing(random_test=False):
             # Delete session
             session.pop("selected_class", None)
             session.pop("num_of_imgs", None)
+            session.pop("selected_image_ids", None)
 
             return redirect(url_for('worker.testing_failed', selected_class=selected_class))
 
