@@ -111,6 +111,7 @@ def admin_login():
         session.clear()
         session['user_id'] = user['id']
         session['is_admin'] = True
+        refresh_bans()
 
         return redirect(url_for('admin.dashboard'))
 

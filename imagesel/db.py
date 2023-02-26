@@ -114,6 +114,6 @@ def log_action(action_text, worker_id=-1):
 def refresh_bans():
     """Delete rows older than 14 days from banned table."""
     execute_query(
-        f'DELETE FROM banned WHERE created < NOW() - INTERVAL \'{current_app.config["BAN_EXPIRE_DAYS"]} days\'',
+        f'DELETE FROM banned WHERE expiration > NOW()',
         fetch=False
     )
