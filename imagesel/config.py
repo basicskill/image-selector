@@ -17,10 +17,13 @@ NUM_LABELING = 10
 NUM_VOTES = 3
 
 # Number of days for deleting of logs
-LOG_DELETE_PERIOD = 7
+LOG_DELETE_DAYS = 7
 
 # Number of days for deleting of bans
-BAN_DELETE_PERIOD = 14
+BAN_EXPIRE_DAYS = 14
+
+# Number of hours for deleting bans issued by failing hidden test
+HIDDEN_TEST_BAN_EXPIRE_HOURS = 2
 
 # Define image states
 STATES = ['processed', 'unprocessed', 'holding']
@@ -28,5 +31,5 @@ STATES = ['processed', 'unprocessed', 'holding']
 # Number of images shown per page in admin panel
 PAGE_SIZE = 10
 
-# Average number of sessions between random testing
-RANDOM_TESTING_PERIOD = 2  # TODO Change back to 10
+# Average number of labeling sessions between random testing
+RANDOM_TESTING_INTERVAL = 10

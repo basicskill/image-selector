@@ -54,6 +54,7 @@ CREATE TABLE banned (
   id SERIAL PRIMARY KEY,
   worker_id INTEGER NOT NULL,
   class TEXT NOT NULL,
+  expiration TIMESTAMP NOT NULL,
   created TIMESTAMP NOT NULL DEFAULT DATE_TRUNC('second', CURRENT_TIMESTAMP::timestamp)
 );
 

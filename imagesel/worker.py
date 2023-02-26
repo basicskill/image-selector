@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import time
 from random import shuffle, randint
 
@@ -212,6 +213,13 @@ def submit_testing(random_test=False):
 
             # flash("You failed random testing", "warning")
 
+            # Add selected class to banned table for worker
+            execute_query(
+                "INSERT INTO banned (worker_id, class, expiration) VALUES (%s, %s, %s)",
+                (g.user["id"], session["selected_class"], datetime.now() + timedelta(hours=current_app.config['HIDDEN_TEST_BAN_EXPIRE_HOURS'])),
+                fetch=False
+            )
+
             session.pop("selected_class", None)
             session.pop("num_of_imgs", None)
             session.pop("to_be_labeled_ids", None)
@@ -225,8 +233,8 @@ def submit_testing(random_test=False):
 
             # Add selected class to banned table for worker
             execute_query(
-                "INSERT INTO banned (worker_id, class) VALUES (%s, %s)",
-                (g.user["id"], session["selected_class"]),
+                "INSERT INTO banned (worker_id, class, expiration) VALUES (%s, %s, %s)",
+                (g.user["id"], session["selected_class"], datetime.now() + timedelta(days=current_app.config['BAN_EXPIRE_DAYS'])),
                 fetch=False
             )
 
@@ -264,7 +272,7 @@ def labeling():
         session["label_start"] = time.time()
 
     if "random_testing" not in session:
-        session["random_testing"] = randint(1, current_app.config["RANDOM_TESTING_PERIOD"]) == 1
+        session["random_testing"] = randint(1, current_app.config["RANDOM_TESTING_INTERVAL"]) == 1
 
     # Choose number of images to be labeled from session
     # Choose num_of_imgs random not processed images

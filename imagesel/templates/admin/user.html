@@ -43,7 +43,7 @@
             <tr>
                 <td>{{ cls.class }}</td>
                 <td>{{ cls.created }}</td>
-                <td>{{ cls.ban_expiration }}</td>
+                <td>{{ cls.expiration }}</td>
                 <td class="width-small">
                     <form action="{{ url_for('admin.delete_ban', worker_name=worker.username, class_name=cls.class) }}" method="post">
                         <input type="submit" class="btn btn-danger" value="Remove ban" onclick="return confirm('Are you sure?');">

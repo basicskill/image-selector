@@ -94,7 +94,7 @@ def execute_query(query, args=None, fetch=True):
 
 
 def log_action(action_text, worker_id=-1):
-    """Insert action_text into logs database and delete rows older then 7 days."""
+    """Insert action_text into logs database and delete rows older than 7 days."""
 
     # Insert action_text into logs table
     execute_query(
@@ -104,17 +104,16 @@ def log_action(action_text, worker_id=-1):
         fetch=False
     )
 
-    # Delete rows older then 7 days
+    # Delete rows older than 7 days
     execute_query(
-        f'DELETE FROM logs WHERE created < NOW() - INTERVAL \'{current_app.config["LOG_DELETE_PERIOD"]} days\'',
+        f'DELETE FROM logs WHERE created < NOW() - INTERVAL \'{current_app.config["LOG_DELETE_DAYS"]} days\'',
         fetch=False
     )
 
 
 def refresh_bans():
-    """Delete rows older then 2 days from banned table."""
-    # Delete rows older then 2 days from banned table
+    """Delete rows older than 14 days from banned table."""
     execute_query(
-        f'DELETE FROM banned WHERE created < NOW() - INTERVAL \'{current_app.config["BAN_DELETE_PERIOD"]} days\'',
+        f'DELETE FROM banned WHERE created < NOW() - INTERVAL \'{current_app.config["BAN_EXPIRE_DAYS"]} days\'',
         fetch=False
     )

@@ -443,11 +443,11 @@ def user_page(worker_name):
     banned_classes = execute_query("SELECT * FROM banned WHERE worker_id = %s", (worker['id'],))
 
     # Calculate ban expiration date for each class
-    for idx in range(len(banned_classes)):
+    '''for idx in range(len(banned_classes)):
         cls = banned_classes[idx]
-        cls['ban_expiration'] = cls['created'] + timedelta(days=current_app.config['BAN_DELETE_PERIOD'])
+        cls['expiration'] = cls['created'] + timedelta(days=current_app.config['BAN_EXPIRE_DAYS'])
         banned_classes[idx] = cls
-
+    '''
     # Select all logs for worker
     worker_logs = execute_query("SELECT * FROM logs WHERE worker_id = %s", (worker['id'],))
 
