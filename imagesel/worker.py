@@ -216,7 +216,7 @@ def submit_testing(random_test=False):
             # Add selected class to banned table for worker
             execute_query(
                 "INSERT INTO banned (worker_id, class, expiration) VALUES (%s, %s, %s)",
-                (g.user["id"], session["selected_class"], datetime.now() + timedelta(hours=current_app.config['HIDDEN_TEST_BAN_EXPIRE_HOURS'])),
+                (g.user["id"], session["selected_class"], datetime.now().replace(microsecond=0) + timedelta(hours=current_app.config['HIDDEN_TEST_BAN_EXPIRE_HOURS'])),
                 fetch=False
             )
 
@@ -234,7 +234,7 @@ def submit_testing(random_test=False):
             # Add selected class to banned table for worker
             execute_query(
                 "INSERT INTO banned (worker_id, class, expiration) VALUES (%s, %s, %s)",
-                (g.user["id"], session["selected_class"], datetime.now() + timedelta(days=current_app.config['BAN_EXPIRE_DAYS'])),
+                (g.user["id"], session["selected_class"], datetime.now().replace(microsecond=0) + timedelta(days=current_app.config['BAN_EXPIRE_DAYS'])),
                 fetch=False
             )
 
