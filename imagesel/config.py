@@ -32,4 +32,4 @@ STATES = ['processed', 'unprocessed', 'holding']
 PAGE_SIZE = 10
 
 # Average number of labeling sessions between random testing
-RANDOM_TESTING_INTERVAL = 10
+RANDOM_TESTING_INTERVAL = 1
